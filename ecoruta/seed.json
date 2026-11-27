@@ -1,0 +1,373 @@
+{
+  "cat": [
+    [
+      "V01",
+      "MG3 Hybrid+",
+      "Hybrid+ Comfort MY26",
+      "HEV",
+      21215,
+      "No",
+      "Ciudad y uso diario",
+      "Contado publicado por Blendio"
+    ],
+    [
+      "V02",
+      "Toyota Yaris",
+      "MY26 Active Hybrid 120",
+      "HEV",
+      21500,
+      "No",
+      "Ciudad y uso diario",
+      "PVP al contado publicado"
+    ],
+    [
+      "V03",
+      "MG ZS Hybrid+",
+      "Hybrid+ Comfort",
+      "HEV",
+      24700,
+      "No",
+      "Uso familiar sin recarga",
+      "Contado publicado por Blendio"
+    ],
+    [
+      "V04",
+      "MG4 Urban",
+      "54kWh Comfort",
+      "BEV",
+      24215,
+      "Sí",
+      "Ciudad con recarga habitual",
+      "Contado publicado por Blendio"
+    ],
+    [
+      "V05",
+      "MG4",
+      "64kWh Premium",
+      "BEV",
+      30815,
+      "Sí",
+      "Uso mixto con recarga",
+      "Contado publicado por Blendio"
+    ],
+    [
+      "V06",
+      "MGS5 EV",
+      "64kWh Luxury",
+      "BEV",
+      31490,
+      "Sí",
+      "Familia y recarga habitual",
+      "Contado publicado por Blendio"
+    ],
+    [
+      "V07",
+      "MG HS",
+      "1.5T PLUG IN HYBRID COMFORT",
+      "PHEV",
+      28932,
+      "Sí",
+      "Uso mixto con recarga diaria",
+      "Contado publicado por Blendio"
+    ],
+    [
+      "V08",
+      "MGS9",
+      "1.5T PHEV Premium AUTO",
+      "PHEV",
+      38990,
+      "Sí",
+      "Familia y viajes con recarga",
+      "Contado publicado por Blendio"
+    ],
+    [
+      "V09",
+      "BYD SEAL U DM-i",
+      "Boost MY2027",
+      "PHEV",
+      39300,
+      "Sí",
+      "Familia y viajes con recarga",
+      "PVPR sin ayudas ni financiación"
+    ]
+  ],
+  "cli": [
+    [
+      "C001",
+      "Alba",
+      "Web",
+      "Si",
+      "Email",
+      "BEV",
+      36000,
+      20,
+      "Si",
+      "Ana Demo",
+      "V05"
+    ],
+    [
+      "C002",
+      "Bruno",
+      "Visita",
+      "Si",
+      "Telefono",
+      "PHEV",
+      40000,
+      60,
+      "No",
+      "Luis Demo",
+      "V07"
+    ],
+    [
+      "C003",
+      "Carla",
+      "Evento",
+      "No",
+      "Email",
+      "BEV",
+      42000,
+      15,
+      "Si",
+      "Ana Demo",
+      "V06"
+    ],
+    [
+      "C004",
+      "Diego",
+      "Web",
+      "Si",
+      "Telefono",
+      "HEV",
+      30000,
+      25,
+      "No",
+      "Luis Demo",
+      "V02"
+    ],
+    [
+      "C005",
+      "Elena",
+      "Referido",
+      "Si",
+      "Email",
+      "BEV",
+      26000,
+      20,
+      "Si",
+      "Ana Demo",
+      "V04"
+    ],
+    [
+      "C006",
+      "Fabio",
+      "Web",
+      "Si",
+      "Email",
+      "BEV",
+      35000,
+      90,
+      "Si",
+      "Luis Demo",
+      "V05"
+    ],
+    [
+      "C007",
+      "Gala",
+      "Visita",
+      "Si",
+      "Telefono",
+      "PHEV",
+      45000,
+      30,
+      "Si",
+      "Ana Demo",
+      "V09"
+    ],
+    [
+      "C008",
+      "Hugo",
+      "Evento",
+      "Si",
+      "Email",
+      "BEV",
+      34000,
+      30,
+      "Por confirmar",
+      "Luis Demo",
+      "V04"
+    ],
+    [
+      "C009",
+      "Ines",
+      "Web",
+      "Si",
+      "Telefono",
+      "HEV",
+      29000,
+      10,
+      "No",
+      "Ana Demo",
+      "V03"
+    ],
+    [
+      "C010",
+      "Jaime",
+      "Referido",
+      "Si",
+      "Email",
+      "PHEV",
+      41000,
+      120,
+      "Si",
+      "Luis Demo",
+      "V08"
+    ]
+  ],
+  "ints": [
+    [
+      "C001",
+      46327.5,
+      "Web",
+      "Consulta",
+      "Pregunta por un electrico urbano",
+      "Ana Demo",
+      ""
+    ],
+    [
+      "C002",
+      46327.5,
+      "Visita",
+      "Consulta",
+      "Interes en hibrido enchufable",
+      "Luis Demo",
+      ""
+    ],
+    [
+      "C003",
+      46328.5,
+      "Evento",
+      "Consulta",
+      "No autoriza seguimiento comercial",
+      "Ana Demo",
+      ""
+    ],
+    [
+      "C004",
+      46328.5,
+      "Web",
+      "Consulta",
+      "Busca hibrido no enchufable",
+      "Luis Demo",
+      ""
+    ],
+    [
+      "C005",
+      46329.5,
+      "Email",
+      "Consulta",
+      "Presupuesto maximo 26000 EUR",
+      "Ana Demo",
+      ""
+    ],
+    [
+      "C006",
+      46329.5,
+      "Web",
+      "Consulta",
+      "Compra prevista en 90 dias",
+      "Luis Demo",
+      ""
+    ],
+    [
+      "C007",
+      46330.5,
+      "Visita",
+      "Consulta",
+      "Dispone de carga en el trabajo",
+      "Ana Demo",
+      ""
+    ],
+    [
+      "C008",
+      46330.5,
+      "Evento",
+      "Consulta",
+      "Debe confirmar acceso a carga",
+      "Luis Demo",
+      ""
+    ],
+    [
+      "C009",
+      46331.5,
+      "Web",
+      "Consulta",
+      "Interes en HEV",
+      "Ana Demo",
+      ""
+    ],
+    [
+      "C010",
+      46331.5,
+      "Email",
+      "Consulta",
+      "Compra prevista en 120 dias",
+      "Luis Demo",
+      ""
+    ],
+    [
+      "C002",
+      46332.5,
+      "Telefono",
+      "Solicitud prueba",
+      "Quiere probar PHEV; no tiene carga habitual",
+      "Luis Demo",
+      ""
+    ],
+    [
+      "C004",
+      46332.5,
+      "Telefono",
+      "Solicitud prueba",
+      "Solicita prueba del HEV",
+      "Luis Demo",
+      ""
+    ],
+    [
+      "C007",
+      46333.5,
+      "Telefono",
+      "Solicitud prueba",
+      "Solicita prueba del PHEV",
+      "Ana Demo",
+      ""
+    ],
+    [
+      "C009",
+      46333.5,
+      "Telefono",
+      "Solicitud prueba",
+      "Solicita prueba del HEV",
+      "Ana Demo",
+      ""
+    ],
+    [
+      "C009",
+      46334.5,
+      "Telefono",
+      "Cita confirmada",
+      "Acepta cita para HEV el 15/11 a las 10:00",
+      "Ana Demo",
+      "Invitar a prueba HEV"
+    ],
+    [
+      "C005",
+      46334.5,
+      "Email",
+      "Solicitud prueba",
+      "Solicita prueba; presupuesto sigue en 26000",
+      "Ana Demo",
+      ""
+    ]
+  ],
+  "template": "Hola {nombre},\n\nGracias por confiar en EcoRuta Madrid. Hemos revisado lo que buscas y creemos que el {vehiculo} encaja contigo: {tecnologia}, cómodo y pensado para tu día a día.\n\nNos encantaría que lo conduzcas tú mismo/a, sin compromiso y con todo el tiempo que necesites. {asesor} te acompañará durante la prueba y resolverá todas tus dudas.\n\nPulsa el botón para confirmar la fecha o proponer la que mejor te venga. ¡Te esperamos!"
+}

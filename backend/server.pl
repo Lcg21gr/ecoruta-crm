@@ -4,7 +4,7 @@
 #  - Login con usuario y contraseña (PBKDF2-SHA256)
 #  - PostgreSQL en Docker, SQLite para el arranque local
 #  - Recomendación de vehículo según catálogo, tecnología y presupuesto
-#  - Envío de invitaciones por Gmail (SMTP + contraseña de aplicación)
+#  - Envío de invitaciones por Gmail API o SMTP local
 # =========================================================
 use strict;
 use warnings;
@@ -12,6 +12,7 @@ use utf8;
 use FindBin qw($Bin);
 use lib "$Bin/lib";
 use EcoRuta::DB qw(connect_db is_pg transaction write_lock ensure_schema init_counters next_id import_sqlite);
+use EcoRuta::Gmail;
 use File::Basename qw(dirname);
 use File::Path qw(make_path);
 use HTTP::Daemon;
@@ -58,6 +59,7 @@ tzset();
 my $CONCESIONARIO = 'EcoRuta Madrid';
 my $PLAZO_CORTO = 30;
 my $J = JSON::PP->new->utf8->canonical;
+my $GMAIL_API;
 # Dirección con la que el cliente abre el botón del correo. En local: http://localhost:8080.
 # Para clientes reales debe ser una dirección pública (dominio o túnel) que apunte a este servidor.
 (my $PUBLIC_URL = cfg('PUBLIC_URL', cfg('RENDER_EXTERNAL_URL', '') || "http://localhost:$PORT")) =~ s{/+$}{};
@@ -131,7 +133,7 @@ my $d = HTTP::Daemon->new(LocalAddr => $BIND, LocalPort => $PORT, ReuseAddr => 1
   or die "No se pudo abrir el puerto $PORT ($!). ¿Ya hay otro servidor del CRM abierto?\n";
 $SIG{CHLD} = 'IGNORE';
 print "\n  EcoRuta CRM funcionando en  http://localhost:$PORT\n";
-print "  Correo Gmail: ", (mail_configured() ? "configurado" : "NO configurado"), "\n";
+print "  Correo Gmail: ", (mail_configured() ? "configurado" : "NO configurado"), " (", mail_transport(), ")\n";
 print "  Para detenerlo pulsa Ctrl+C\n\n";
 
 while (my $c = $d->accept) {
@@ -620,7 +622,7 @@ sub all_data {
     clientes => $cl, interacciones => $ints, encuestas => $encs, catalogo => catalogo($dbh), usuarios => $users, respuestas => $resps,
     publicUrl => $PUBLIC_URL,
     plantillaInvitacion => get_config($dbh, 'plantillaInvitacion'),
-    correo => { configurado => mail_configured() ? JSON::PP::true : JSON::PP::false, remitente => $admin ? (cfg('GMAIL_USER') // '') : '' },
+    correo => { configurado => mail_configured() ? JSON::PP::true : JSON::PP::false, remitente => $admin ? (cfg('GMAIL_USER') // '') : '', transporte => mail_transport() },
   };
 }
 
@@ -736,9 +738,22 @@ sub editar_cliente {
 }
 
 # =========================================================
-#  Correo (Gmail SMTP con contraseña de aplicación)
+#  Correo (Gmail API por HTTPS o SMTP con contraseña de aplicación)
 # =========================================================
-sub mail_configured { my $u = cfg('GMAIL_USER', ''); my $p = cfg('GMAIL_APP_PASSWORD', ''); return valid_email($u) && $p ne '' && $p !~ /^PEGA_AQUI/ }
+sub mail_transport { lc cfg('MAIL_TRANSPORT', flag('RENDER', 0) ? 'gmail_api' : 'smtp') }
+sub mail_configured {
+  return 0 unless valid_email(cfg('GMAIL_USER', ''));
+  my $mode = mail_transport();
+  if ($mode eq 'gmail_api') {
+    for my $key (qw(GMAIL_OAUTH_CLIENT_ID GMAIL_OAUTH_CLIENT_SECRET GMAIL_OAUTH_REFRESH_TOKEN)) {
+      return 0 if trim(cfg($key, '')) eq '';
+    }
+    return 1;
+  }
+  return 0 unless $mode eq 'smtp';
+  my $pass = cfg('GMAIL_APP_PASSWORD', '');
+  return ($pass =~ /\S/ && $pass !~ /^PEGA_AQUI/);
+}
 sub mime_word { my $s = shift; $s =~ s/[\x00-\x1f\x7f]+/ /g; return $s =~ /[^\x20-\x7e]/ ? '=?UTF-8?B?' . encode_base64(encode('UTF-8', $s), '') . '?=' : $s }
 
 sub build_mime {
@@ -772,13 +787,25 @@ sub build_mime {
 
 sub send_mail {
   my %m = @_;
-  return (0, 'El correo no está configurado: falta GMAIL_USER o GMAIL_APP_PASSWORD en el archivo .env.') unless mail_configured();
-  return (0, "Dirección de destino no válida: $m{to}") unless valid_email($m{to});
+  my $mode = mail_transport();
+  return (0, 'MAIL_TRANSPORT no válido. Usa gmail_api o smtp.') unless $mode eq 'gmail_api' || $mode eq 'smtp';
+  return (0, ($mode eq 'gmail_api'
+    ? 'Falta GMAIL_USER o la autorización OAuth de Gmail.'
+    : 'El correo SMTP no está configurado: falta GMAIL_USER o GMAIL_APP_PASSWORD.')) unless mail_configured();
+  return (0, 'Dirección de destino no válida.') unless valid_email($m{to});
+  my $mime = build_mime(%m);
+  if ($mode eq 'gmail_api') {
+    $GMAIL_API //= EcoRuta::Gmail->new(
+      client_id => trim(cfg('GMAIL_OAUTH_CLIENT_ID')),
+      client_secret => trim(cfg('GMAIL_OAUTH_CLIENT_SECRET')),
+      refresh_token => trim(cfg('GMAIL_OAUTH_REFRESH_TOKEN')),
+    );
+    return $GMAIL_API->send_mime($mime);
+  }
   my $user = cfg('GMAIL_USER'); (my $pass = cfg('GMAIL_APP_PASSWORD')) =~ s/\s+//g;
   my $host = cfg('SMTP_HOST', 'smtp.gmail.com');
   my $implicit_tls = flag('SMTP_SSL', 1);
   my $port = cfg('SMTP_PORT', $implicit_tls ? 465 : 587);
-  my $mime = build_mime(%m);
   my @ssl = (SSL_verify_mode => 1);
   push @ssl, (SSL_ca_file => cfg('SMTP_CA_FILE')) if cfg('SMTP_CA_FILE', '') ne '';
   my $smtp = Net::SMTP->new($host, Port => $port, SSL => $implicit_tls ? 1 : 0, @ssl, Timeout => 12, Hello => 'localhost')
@@ -962,9 +989,13 @@ sub enviar_invitacion {
   my $html = html_invitacion(c => $c, v => $v, texto => $texto, ftxt => $ftxt, tiene_fecha => $f ? 1 : 0, url => $url, img => 'cid:vehiculo');
   my $plain = "$texto\n\nFecha propuesta: " . ucfirst_utf($ftxt) . "\n\nResponde a la invitación aquí: $url\n\n$c->{asesor}\nTu asesor/a en $CONCESIONARIO";
   my $asunto = "$c->{nombre}, te invitamos a probar el $v->{modelo}";
-  my ($ok, $det) = send_mail(to => $c->{email}, subject => $asunto, text => $plain, html => $html, img => "$FRONT/img/$v->{id}.jpg");
+  my ($ok, $det, $incierto) = send_mail(to => $c->{email}, subject => $asunto, text => $plain, html => $html, img => "$FRONT/img/$v->{id}.jpg");
   log_envio($dbh, $c->{id}, 'invitacion', $c->{email}, $asunto, $ok ? 'enviado' : 'error', $det, $me->{nombre});
-  unless ($ok) { $dbh->do('DELETE FROM enlaces WHERE token = ?', undef, $token); return { estado => 'error', detalle => $det } }
+  unless ($ok) {
+    # Si el proveedor pudo aceptar el correo, no invalidar el enlace incluido.
+    $dbh->do('DELETE FROM enlaces WHERE token = ?', undef, $token) unless $incierto;
+    return { estado => 'error', detalle => $det };
+  }
   add_int($dbh, $c->{id}, 'Email', 'Invitación test drive', "Correo enviado a $c->{email} para probar $v->{modelo} · fecha propuesta: $ftxt", $me->{nombre}, "Invitar a prueba $v->{tec}");
   return { estado => 'enviado', detalle => "Invitación enviada a $c->{email}", vehiculo => $v->{modelo} };
 }
@@ -986,11 +1017,16 @@ sub enviar_encuesta {
   } else {
     my $texto = intro_encuesta($c, $tipo);
     my $asunto = "$c->{nombre}, ¿nos cuentas qué tal fue? · $CONCESIONARIO";
-    my ($ok, $det) = send_mail(to => $c->{email}, subject => $asunto, text => "$texto\n\nResponde aquí: $url\n\n$c->{asesor}\n$CONCESIONARIO",
+    my ($ok, $det, $incierto) = send_mail(to => $c->{email}, subject => $asunto, text => "$texto\n\nResponde aquí: $url\n\n$c->{asesor}\n$CONCESIONARIO",
                                html => html_encuesta(c => $c, tipo => $tipo, texto => $texto, url => $url));
     log_envio($dbh, $c->{id}, 'encuesta', $c->{email}, $asunto, $ok ? 'enviado' : 'error', $det, $me->{nombre});
     unless ($ok) {
-      $dbh->do('DELETE FROM enlaces WHERE token = ?', undef, $token); $dbh->do('DELETE FROM encuestas WHERE id = ?', undef, $eid);
+      if ($incierto) {
+        $dbh->do(q{UPDATE encuestas SET estado = 'Envío incierto' WHERE id = ? AND estado = 'Enviada'}, undef, $eid);
+      } else {
+        $dbh->do('DELETE FROM enlaces WHERE token = ?', undef, $token);
+        $dbh->do('DELETE FROM encuestas WHERE id = ?', undef, $eid);
+      }
       return { estado => 'error', detalle => $det };
     }
     $res = { estado => 'enviado', detalle => "Encuesta enviada a $c->{email}" };

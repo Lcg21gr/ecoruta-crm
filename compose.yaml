@@ -33,14 +33,12 @@ services:
       DB_SSLMODE: disable
       BIND_HOST: "0.0.0.0"
       PORT: "8080"
-      HTTP_ENGINE: starman
+      CRM_MANAGE_SCHEMA: "1"
       APP_ENV: ${APP_ENV:-local}
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:${CRM_PORT:-8086}}
       CRM_SETUP_TOKEN: ${CRM_SETUP_TOKEN:-}
       SEED_DEMO: ${SEED_DEMO:-0}
     ports:
       - "127.0.0.1:${CRM_PORT:-8086}:8080"
-    healthcheck:
-      test: [CMD, curl, -fsS, --max-time, '7', 'http://127.0.0.1:8080/healthz']
 volumes:
   postgres_data:

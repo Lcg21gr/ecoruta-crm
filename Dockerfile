@@ -1,25 +1,16 @@
-FROM debian:bookworm-slim
-
-RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-       ca-certificates curl tzdata perl libhttp-daemon-perl liburi-perl \
-       libdbi-perl libdbd-pg-perl libdbd-sqlite3-perl libio-socket-ssl-perl \
-       libauthen-sasl-perl starman \
-    && rm -rf /var/lib/apt/lists/* \
-    && groupadd --gid 10001 ecoruta \
-    && useradd --uid 10001 --gid ecoruta --no-create-home --shell /usr/sbin/nologin ecoruta \
-    && install -d -m 0700 -o ecoruta -g ecoruta /app/backend/data
-
+FROM python:3.12-slim
 WORKDIR /app
-COPY backend/server.pl backend/schema.sql ./backend/
-COPY backend/lib/ ./backend/lib/
-COPY frontend/index.html ./frontend/
-COPY frontend/img/V*.jpg ./frontend/img/
-RUN perl -c backend/server.pl
-
-ENV BIND_HOST=0.0.0.0 PORT=8080 HTTP_ENGINE=starman SEED_DEMO=0 TZ=Europe/Madrid
+ENV BIND_HOST=0.0.0.0 PORT=8080 PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+RUN groupadd --gid 10001 ecoruta && useradd --uid 10001 --gid 10001 --create-home ecoruta \
+    && install -d -o ecoruta -g ecoruta -m 0700 /app/backend/data
+COPY ecoruta/ ecoruta/
+COPY streamlit_app.py .
+COPY .streamlit/config.toml .streamlit/config.toml
+COPY backend/schema.sql backend/schema.sql
+COPY frontend/img/V*.jpg frontend/img/
 USER ecoruta
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=8s --start-period=20s \
-  CMD curl -fsS --max-time 7 "http://127.0.0.1:$PORT/livez" > /dev/null || exit 1
-ENTRYPOINT ["perl", "backend/server.pl"]
+HEALTHCHECK --interval=20s --timeout=8s --start-period=20s CMD ["python", "-c", "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:'+os.environ['PORT']+'/_stcore/health', timeout=7).close()"]
+ENTRYPOINT ["python", "-m", "ecoruta"]

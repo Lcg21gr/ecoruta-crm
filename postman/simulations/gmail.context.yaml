@@ -1,0 +1,30 @@
+purpose:
+  stands_in_for: "Endpoints OAuth y Gmail API que consume EcoRuta, en una sola simulación de desarrollo."
+  unblocks: "Ejecutar altas, envíos y respuestas desde el CRM real sin credenciales ni entrega de correo. La búsqueda de mocks del proveedor no se completó porque el CLI no tiene sesión, el mock local se basa en los contratos públicos."
+assumptions:
+  - id: gmail-mime-envelope
+    status: supported
+    claim: "messages.send acepta JSON con raw en base64URL, MIME y un token Bearer con alcance gmail.send."
+    reason: "Google lo documenta. EcoRuta conserva los mensajes existentes con sus fotos y enlaces."
+    verification: "Caso base en tests/run-gmail-simulation.sh: el CRM real envió correos de prueba, invitación con foto, encuesta y aviso. El mock validó el formato; no se verificó entrega real."
+    source: "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send ; tests/gmail_integration.py"
+    updated_at: "2026-11-27"
+  - id: gmail-uncertain-delivery
+    status: supported
+    claim: "Ante un 503 de envío, el CRM no reintenta la llamada automáticamente y conserva el enlace de una invitación o encuesta cuyo resultado no puede confirmar."
+    reason: "Un error después de mandar el cuerpo no prueba que Google no haya aceptado el mensaje."
+    verification: "La simulación registró exactamente una solicitud 503 por operación, los enlaces siguieron respondiendo y el CRM no informó envío confirmado."
+    source: "backend/lib/EcoRuta/Gmail.pm ; backend/server.pl ; tests/gmail_integration.py"
+    updated_at: "2026-11-27"
+  - id: gmail-live-authorization
+    status: unknown
+    claim: "La autorización OAuth y la entrega real desde la cuenta del usuario siguen pendientes."
+    reason: "El flujo funcional se probó con OAuth simulado y no se envió ningún correo real."
+    verification: "Pendiente de autorización de Google y correo de prueba a un destinatario propio."
+    source: "https://developers.google.com/identity/protocols/oauth2/native-app ; scripts/autorizar-gmail.py"
+    updated_at: "2026-11-27"
+fingerprints:
+  - id: ecoruta-gmail-local
+    date: "2026-11-27"
+    commit: "a443477e7824fe0135a54be7f14c50cd650a7b74 (con cambios de Gmail en el árbol de trabajo)"
+    cli: "1.75.0"

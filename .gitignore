@@ -17,3 +17,15 @@ backups/
 *.dump
 .DS_Store
 __pycache__/
+client_secret*.json
+
+# Salida opcional del asistente OAuth (el valor por defecto .env.gmail ya se ignora)
+EcoRuta-Gmail.env
+
+.venv/
+
+.streamlit/secrets.toml
+
+EcoRuta-Streamlit.toml
+
+.pytest_cache/

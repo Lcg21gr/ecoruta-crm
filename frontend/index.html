@@ -619,7 +619,7 @@ function encuestaRow(e, conCliente=true){
   const c = DATA.clientes.find(x=>x.id===e.clienteId);
   const r = e.respuestas;
   return `<div class="tl"><div class="small muted">${fdate(e.enviada)}<br>${esc(e.canal)}</div><div>
-    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><div><b>${esc(e.tipo)}</b>${conCliente&&c?` · <a href="#" data-open="${c.id}">${esc(nombreC(c))}</a>`:''}</div>${e.estado==='Respondida'?pill('Respondida','ok'):pill('Pendiente','warn')}</div>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><div><b>${esc(e.tipo)}</b>${conCliente&&c?` · <a href="#" data-open="${c.id}">${esc(nombreC(c))}</a>`:''}</div>${e.estado==='Respondida'?pill('Respondida','ok'):pill(e.estado==='Envío incierto'?'Envío sin confirmar':'Pendiente','warn')}</div>
     ${r?`<div class="small">Satisfacción ${r.satisfaccion}/5 · Recomendaría ${r.nps}/10 · Interés en test drive: <b>${esc(r.interes)}</b>${r.comentario?`<div class="muted">“${esc(r.comentario)}”</div>`:''}</div>`:(isAdmin()?`<button class="btn sm" style="margin-top:6px" data-encresp="${e.id}">Registrar respuesta</button>`:'')}
   </div></div>`;
 }
@@ -716,6 +716,7 @@ function equipoView(){
     </div>
     <div class="card">
       <h2>Correo Gmail</h2>
+      <div class="small muted">${co.transporte === 'gmail_api' ? 'Gmail API (HTTPS)' : 'Gmail SMTP'}</div>
       <div style="margin:10px 0">${co.configurado?pill('Configurado','ok')+` <span class="small">Remitente: <b>${esc(co.remitente)}</b></span>`:pill('No configurado','warn')}</div>
       ${co.configurado?`
         <form data-form="test-email" class="form" style="grid-template-columns:1fr auto;align-items:end">
@@ -723,7 +724,9 @@ function equipoView(){
           <button class="btn">Probar</button>
         </form>`:`
         <ol class="small" style="padding-left:18px;margin:0">
-          <li>Configura <b>GMAIL_USER</b> y <b>GMAIL_APP_PASSWORD</b> en el archivo <b>.env</b> del servidor o como secretos de la plataforma.</li>
+          ${co.transporte === 'gmail_api'
+            ? '<li>Autoriza Gmail en Google y agrega las variables <b>GMAIL_USER</b> y <b>GMAIL_OAUTH_*</b> como secretos del servidor.</li>'
+            : '<li>Configura <b>GMAIL_USER</b> y <b>GMAIL_APP_PASSWORD</b> en el archivo <b>.env</b> local.</li>'}
           <li>Reinicia el servicio y envía un correo de prueba desde esta pantalla.</li>
         </ol>`}
       <div class="note" style="margin-top:12px"><b>Administrador:</b> crea y edita clientes, envía invitaciones y encuestas, gestiona catálogo y equipo.<br><b>Usuario estándar:</b> ve solo sus clientes asignados, consulta la recomendación y registra interacciones.</div>

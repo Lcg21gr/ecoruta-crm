@@ -1,0 +1,14 @@
+version: 1
+name: EcoRuta Gmail
+slug: ecoruta-gmail
+description: Simulación local de OAuth y envío Gmail para EcoRuta.
+protocol: http
+port: 4500
+origin:
+  - oauth2.googleapis.com
+  - gmail.googleapis.com
+interceptRequests: true
+scenarios:
+  - name: default
+    path: ./default.js
+    default: true

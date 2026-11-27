@@ -1,0 +1,11 @@
+[theme]
+primaryColor = "#176047"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+headless = true
+
+[client]
+showErrorDetails = "none"
