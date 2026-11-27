@@ -1,0 +1,11 @@
+**
+!Dockerfile
+!backend/
+!backend/server.pl
+!backend/schema.sql
+!backend/lib/
+!backend/lib/**
+!frontend/
+!frontend/index.html
+!frontend/img/
+!frontend/img/V*.jpg

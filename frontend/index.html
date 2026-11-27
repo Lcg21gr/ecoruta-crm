@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EcoRuta CRM</title>
+<style>
+:root{
+  --bg:#f5f7f4; --surface:#ffffff; --surface-2:#eef2ec; --border:#dde3da;
+  --text:#1c2420; --muted:#5d6b63; --brand:#1f7a4d; --brand-ink:#ffffff; --brand-soft:#e2f1e8;
+  --warn:#9a6200; --warn-soft:#fbefd8; --danger:#b3261e; --danger-soft:#fbe4e2;
+  --info:#1d5fa8; --info-soft:#e1ecf8; --ok:#1f7a4d; --ok-soft:#e2f1e8;
+  --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.05);
+  --radius:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121614; --surface:#1a1f1c; --surface-2:#222a25; --border:#2f3933;
+    --text:#e6ece8; --muted:#9aa8a0; --brand:#4cc38a; --brand-ink:#08130d; --brand-soft:#1d3428;
+    --warn:#f0b54a; --warn-soft:#3a2d12; --danger:#f2867e; --danger-soft:#3d1c1a;
+    --info:#7fb2ee; --info-soft:#18293d; --ok:#4cc38a; --ok-soft:#1d3428; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121614; --surface:#1a1f1c; --surface-2:#222a25; --border:#2f3933;
+  --text:#e6ece8; --muted:#9aa8a0; --brand:#4cc38a; --brand-ink:#08130d; --brand-soft:#1d3428;
+  --warn:#f0b54a; --warn-soft:#3a2d12; --danger:#f2867e; --danger-soft:#3d1c1a;
+  --info:#7fb2ee; --info-soft:#18293d; --ok:#4cc38a; --ok-soft:#1d3428; --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0;line-height:1.25}
+h1{font-size:22px} h2{font-size:17px} h3{font-size:14px}
+.muted{color:var(--muted)} .small{font-size:12px}
+.hidden{display:none!important}
+
+.login{min-height:100vh;display:grid;place-items:center;padding:16px}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:28px;max-width:420px;width:100%}
+.login-card form{display:grid;gap:12px;margin-top:20px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px}
+.logo-mark{width:34px;height:34px;border-radius:9px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-weight:800}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-weight:700;flex:none}
+
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+.side{background:var(--surface);border-right:1px solid var(--border);padding:18px 12px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh}
+.nav{display:grid;gap:2px}
+.nav button{display:flex;align-items:center;gap:10px;padding:9px 12px;border:0;border-radius:8px;background:transparent;cursor:pointer;text-align:left}
+.nav button:hover{background:var(--surface-2)}
+.nav button.active{background:var(--brand-soft);color:var(--brand);font-weight:600}
+.side-foot{margin-top:auto;border-top:1px solid var(--border);padding-top:12px;display:grid;gap:8px}
+.role-badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:var(--surface-2);color:var(--muted)}
+.role-badge.admin{background:var(--brand-soft);color:var(--brand)}
+main{padding:24px;min-width:0}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.topbar{display:none}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.kpi .v{font-size:26px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:12px;color:var(--muted)}
+.two{grid-template-columns:1.4fr 1fr}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;white-space:nowrap;text-decoration:none;color:var(--text)}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink);font-weight:600}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.input,select.input,textarea.input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
+.input:focus{outline:2px solid var(--brand);outline-offset:-1px;border-color:transparent}
+.search{max-width:280px}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:middle}
+th{font-size:12px;font-weight:600;color:var(--muted);background:var(--surface-2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover{background:var(--surface-2)}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
+.p-ok{background:var(--ok-soft);color:var(--ok)}
+.p-warn{background:var(--warn-soft);color:var(--warn)}
+.p-danger{background:var(--danger-soft);color:var(--danger)}
+.p-info{background:var(--info-soft);color:var(--info)}
+.p-mute{background:var(--surface-2);color:var(--muted)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:5px 12px;border-radius:99px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px}
+.chip.on{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.bar-row{display:grid;grid-template-columns:130px 1fr 28px;gap:10px;align-items:center;margin:6px 0;font-size:13px}
+.bar{height:10px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.bar > i{display:block;height:100%;background:var(--brand);border-radius:99px}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.note{font-size:12px;color:var(--muted);background:var(--surface-2);border-radius:8px;padding:8px 10px}
+.note.warn{background:var(--warn-soft);color:var(--warn)}
+.note.err{background:var(--danger-soft);color:var(--danger)}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:20;display:flex;justify-content:flex-end}
+.drawer{background:var(--bg);width:min(760px,100%);height:100%;overflow-y:auto;padding:22px;border-left:1px solid var(--border)}
+.modal-wrap{justify-content:center;align-items:center;padding:16px;z-index:25}
+.modal{background:var(--surface);border-radius:16px;width:min(680px,100%);max-height:92vh;overflow-y:auto;padding:22px;border:1px solid var(--border)}
+.d-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:16px}
+.x{border:0;background:transparent;font-size:22px;line-height:1;cursor:pointer;color:var(--muted);padding:4px 8px;border-radius:6px}
+.x:hover{background:var(--surface-2)}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form .full{grid-column:1/-1}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:13px}
+.check input{margin-top:3px}
+.form-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 16px}
+.kv div span{display:block;font-size:12px;color:var(--muted)}
+.kv div b{font-weight:600}
+.decision{border-left:4px solid var(--brand)}
+.decision.blocked{border-left-color:var(--danger)}
+.decision.warn{border-left-color:var(--warn)}
+.tl{display:grid;grid-template-columns:92px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.tl:last-child{border-bottom:0}
+.car{display:flex;gap:12px;align-items:center}
+.car img{width:120px;height:78px;object-fit:cover;border-radius:8px;background:var(--surface-2);flex:none}
+.reco{border:1px solid var(--brand);background:var(--brand-soft);border-radius:var(--radius);padding:12px}
+.reco.warn{border-color:var(--warn);background:var(--warn-soft)}
+.cat-grid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.cat-card{padding:0;overflow:hidden}
+.cat-card img{width:100%;height:150px;object-fit:cover;display:block;background:var(--surface-2)}
+.cat-card .body{padding:14px}
+.preview{white-space:pre-wrap;background:var(--surface-2);border-radius:8px;padding:12px;font-size:13px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:50;font-size:13px;box-shadow:var(--shadow);max-width:90vw}
+.stars{display:flex;gap:6px;flex-wrap:wrap}
+.stars label{display:flex;align-items:center;gap:4px;border:1px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer}
+.sec-title{display:flex;justify-content:space-between;align-items:center;margin:20px 0 10px;gap:8px;flex-wrap:wrap}
+.loading{min-height:100vh;display:grid;place-items:center;color:var(--muted)}
+.badge{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--danger);color:#fff;font-size:11px;font-weight:700;display:inline-grid;place-items:center}
+.modal.wide{width:min(760px,100%)}
+.resp-row{cursor:pointer;border-radius:8px}
+.resp-row:hover{background:var(--surface-2)}
+.preview-frame{width:100%;height:72vh;border:1px solid var(--border);border-radius:10px;background:#eef3ee}
+
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;left:0;top:0;z-index:30;width:240px;transform:translateX(-100%);transition:transform .2s}
+  .side.open{transform:none;box-shadow:var(--shadow)}
+  .topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+  main{padding:16px}
+  .two{grid-template-columns:1fr}
+  .form{grid-template-columns:1fr}
+  .search{max-width:none;flex:1}
+  .drawer{padding:16px}
+}
+</style>
+</head>
+<body>
+<div id="root"><div class="loading">Cargando…</div></div>
+
+<script>
+/* =========================================================
+   EcoRuta CRM · interfaz (habla con server.pl)
+   ========================================================= */
+const CONCESIONARIO = 'EcoRuta Madrid';
+const PLAZO_CORTO = 30;
+const OPCIONES = {
+  eventos:['Consulta','Visita concesionario','Solicitud prueba','Invitación test drive','Cita confirmada','Asesoramiento enviado','Encuesta enviada','Encuesta respondida','Llamada','Otro'],
+  canalesInt:['Web','Visita','Evento','Email','Telefono','WhatsApp'],
+};
+const TIPOS_ENC = ['Satisfacción post-visita','Satisfacción post test drive','Interés en nuevo modelo'];
+const SEGMENTOS = ['Listo para prueba','Cita confirmada','Asesorar carga','Revisar presupuesto','Revisar modelo','Lista de espera','En exploración','Sin permiso'];
+
+let DATA = null;          // datos del servidor
+let session = null;       // usuario con sesión
+let view = 'panel';
+let ui = {q:'', filtroSeg:'Todos', invFiltro:'visita', invSel:null, invFecha:'', encSel:new Set(), navOpen:false, loginErr:'', needsSetup:false, setupToken:false};
+
+/* ---------- API ---------- */
+async function api(method, path, body){
+  let r;
+  try{
+    r = await fetch(path, {method, headers: body ? {'Content-Type':'application/json'} : {}, body: body ? JSON.stringify(body) : undefined, credentials:'same-origin'});
+  }catch(_){
+    throw new Error('No se pudo conectar con el servidor del CRM. Comprueba la conexión y vuelve a intentarlo.');
+  }
+  let j = {}; try{ j = await r.json(); }catch(e){}
+  if(r.status === 401 && !['/api/login','/api/setup'].includes(path)){ session = null; DATA = null; closeDrawer(); closeModal(); render(); throw new Error(j.error || 'Sesión caducada'); }
+  if(!r.ok){ const e = new Error(j.error || ('Error ' + r.status)); e.data = j; throw e; }
+  return j;
+}
+async function refresh(){ applyData(await api('GET','/api/data')); }
+function applyData(d){
+  DATA = d;
+  session = DATA.me;
+  DATA.clientes.forEach(c=>{ c.presupuesto = Number(c.presupuesto); c.compraDias = Number(c.compraDias); });
+  DATA.catalogo.forEach(v=>{ v.precio = Number(v.precio); });
+}
+async function boot(){
+  if(location.protocol === 'file:'){
+    $('#root').innerHTML = `<div class="login"><div class="login-card"><div class="logo"><div class="logo-mark">E</div>EcoRuta CRM</div>
+      <p style="margin-top:14px">Abre el CRM desde la dirección de tu servidor. En local puedes arrancarlo con Docker Compose o con <b>iniciar-crm.command</b> en macOS.</p></div></div>`;
+    return;
+  }
+  try{ await refresh(); }
+  catch(e){
+    try{
+      const estado = await api('GET','/api/estado');
+      ui.needsSetup = estado.necesitaConfiguracion;
+      ui.setupToken = estado.requiereTokenConfiguracion;
+    }catch(err){ ui.loginErr = err.message; }
+  }
+  render();
+}
+
+/* ---------- Utilidades ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const eur = n => new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:0,useGrouping:'always'}).format(n);
+const fdate = iso => new Date(iso).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
+const nombreC = c => `${c.nombre} ${c.apellido}`;
+const isAdmin = () => session && session.rol === 'admin';
+const initials = n => n.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
+const vehiculo = id => DATA.catalogo.find(v=>v.id===id);
+const intsDe = id => DATA.interacciones.filter(i=>i.clienteId===id).sort((a,b)=>a.fecha.localeCompare(b.fecha) || a.id-b.id);
+const asesores = () => DATA.usuarios.filter(u=>u.rol==='estandar');
+const REF_POR_TEC = {BEV:'V04',PHEV:'V07',HEV:'V01'};
+function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3200); }
+function visitoConcesionario(c){ return c.origen==='Visita' || intsDe(c.id).some(i=>i.canal==='Visita' || i.evento==='Visita concesionario'); }
+const pill = (t,tono) => `<span class="pill p-${tono}">${esc(t)}</span>`;
+const prioPill = p => pill(p, p==='Alta'?'danger':p==='Media'?'warn':'mute');
+const ESTADO_ENVIO = {enviado:['Enviado','ok'], error:['Error','danger'], omitido:['No enviado','mute'], sin_permiso:['Bloqueado GDPR','danger'], no_solicitado:['Sin enviar','mute']};
+const envioPill = e => { const [t,c] = ESTADO_ENVIO[e] || [e,'mute']; return pill(t,c); };
+async function busy(btn, fn){ const txt = btn?.textContent; if(btn){ btn.disabled = true; btn.textContent = 'Procesando…'; } try{ return await fn(); } finally{ if(btn && btn.isConnected){ btn.disabled = false; btn.textContent = txt; } } }
+
+/* =========================================================
+   MOTOR DE RECOMENDACIÓN (reglas en orden, hoja Guía §6–7)
+   ========================================================= */
+function motor(c){
+  const v = vehiculo(c.vehiculo) || vehiculo(REF_POR_TEC[c.tecnologia]);
+  const ints = intsDe(c.id);
+  const solicitud = ints.some(i=>i.evento==='Solicitud prueba');
+  const cita = ints.some(i=>i.evento==='Cita confirmada');
+  const invitado = ints.some(i=>i.evento==='Invitación test drive');
+  const tecOk = v.tec === c.tecnologia;
+  const cargaOk = c.tecnologia === 'HEV' || c.carga === 'Si';
+  const margen = c.presupuesto - v.precio;
+  const presOk = margen >= 0;
+  const alternativas = DATA.catalogo.filter(x=>x.tec===c.tecnologia && x.precio<=c.presupuesto).length;
+  const plazoCorto = c.compraDias <= PLAZO_CORTO;
+  const prioridad = c.compraDias<=30 ? 'Alta' : c.compraDias<=60 ? 'Media' : 'Baja';
+  const base = {v, margen, presOk, cargaOk, tecOk, alternativas, prioridad, solicitud, cita, invitado, plazoCorto};
+  if(c.permiso !== 'Si') return {...base, segmento:'Sin permiso', accion:'No iniciar seguimiento comercial', plazo:'No aplica', tono:'danger', regla:'1. Filtro legal (GDPR): sin permiso de contacto.'};
+  if(cita) return {...base, segmento:'Cita confirmada', accion:'Preparar prueba ya acordada', plazo:'Según cita registrada', tono:'info', regla:'Existe una cita confirmada en el historial.'};
+  if(!tecOk) return {...base, segmento:'Revisar modelo', accion:`Revisar vehículo: el elegido es ${v.tec} y el cliente prefiere ${c.tecnologia}`, plazo:'En 3 días', tono:'warn', regla:'Modelo incompatible con la tecnología preferida.'};
+  if(!cargaOk) return {...base, segmento:'Asesorar carga', accion:'Aclarar carga y comparar opciones con cliente', plazo:'En 3 días', tono:'warn', regla:`4. Compatibilidad de carga: ${c.tecnologia} con carga "${c.carga}".`};
+  if(!presOk) return {...base, segmento:'Revisar presupuesto', accion: alternativas ? `Proponer alternativa ${c.tecnologia} dentro del presupuesto (${alternativas} opción/es)` : 'Proponer financiación o tecnología alternativa', plazo:'En 3 días', tono:'warn', regla:'3. Viabilidad financiera: presupuesto menor que el precio de referencia.'};
+  if(solicitud && plazoCorto){
+    if(!v.disponible) return {...base, segmento:'Lista de espera', accion:`Unidad ${v.id} no disponible: ofrecer fecha alternativa`, plazo:'En 24 horas', tono:'warn', regla:'5. Flota test drive: unidad no disponible hoy.'};
+    return {...base, segmento:'Listo para prueba', accion:`Invitar a prueba ${c.tecnologia}`, plazo:'En 24 horas', tono:'ok', regla:'Solicitó prueba, compra en ≤30 días y cumple carga y presupuesto.'};
+  }
+  return {...base, segmento:'En exploración', accion:`Enviar comparativa ${c.tecnologia} y acordar seguimiento`, plazo:'En 3 días', tono:'mute', regla: solicitud ? 'Solicitó prueba pero su plazo de compra supera 30 días.' : 'Aún no ha solicitado prueba.'};
+}
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+function render(){
+  const root = $('#root');
+  if(!session || !DATA){ root.innerHTML = ui.needsSetup ? setupView() : loginView(); $('#root input')?.focus(); return; }
+  const navItems = isAdmin()
+    ? [['panel','Panel'],['clientes','Clientes'],['invitaciones','Invitaciones test drive'],['encuestas','Encuestas'],['catalogo','Catálogo'],['equipo','Equipo y correo']]
+    : [['panel','Mi panel'],['clientes','Mis clientes'],['catalogo','Catálogo']];
+  if(!navItems.some(n=>n[0]===view)) view='panel';
+  const pages = {panel:panelView, clientes:clientesView, invitaciones:invitacionesView, encuestas:encuestasView, catalogo:catalogoView, equipo:equipoView};
+  root.innerHTML = `
+  <div class="topbar"><button class="btn sm" data-act="nav-toggle" aria-label="Menú">☰</button><div class="logo"><div class="logo-mark">E</div>EcoRuta CRM</div></div>
+  <div class="app">
+    <aside class="side ${ui.navOpen?'open':''}">
+      <div class="logo"><div class="logo-mark">E</div>EcoRuta CRM</div>
+      <nav class="nav">${navItems.map(([k,l])=>`<button class="${view===k?'active':''}" data-nav="${k}">${l}${k==='panel'&&noLeidas()?`<span class="badge" title="Respuestas nuevas">${noLeidas()}</span>`:''}</button>`).join('')}</nav>
+      <div class="side-foot">
+        <div style="display:flex;gap:10px;align-items:center"><div class="avatar">${esc(initials(session.nombre))}</div><div style="min-width:0"><div style="font-weight:600">${esc(session.nombre)}</div><span class="role-badge ${isAdmin()?'admin':''}">${isAdmin()?'Administrador':'Usuario estándar'}</span></div></div>
+        <button class="btn sm" data-act="logout">Cerrar sesión</button>
+      </div>
+    </aside>
+    <main>${pages[view]()}</main>
+  </div>`;
+}
+
+function loginView(){
+  return `<div class="login"><div class="login-card">
+    <div class="logo"><div class="logo-mark">E</div>EcoRuta CRM</div>
+    <p class="muted" style="margin:10px 0 0">Inicia sesión con tu cuenta de ${CONCESIONARIO}.</p>
+    <form data-form="login">
+      <div class="field"><label for="l-email">Correo electrónico</label><input id="l-email" class="input" name="email" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="l-pass">Contraseña</label><input id="l-pass" class="input" name="password" type="password" autocomplete="current-password" required></div>
+      ${ui.loginErr?`<div class="note err">${esc(ui.loginErr)}</div>`:''}
+      <button class="btn primary">Entrar</button>
+    </form>
+    <p class="small muted" style="margin:14px 0 0">¿No tienes acceso? Pide al administrador que te cree un usuario.</p>
+  </div></div>`;
+}
+function setupView(){
+  return `<div class="login"><div class="login-card">
+    <div class="logo"><div class="logo-mark">E</div>EcoRuta CRM</div>
+    <h2 style="margin-top:16px">Crear cuenta de administrador</h2>
+    <p class="muted small" style="margin:4px 0 0">Primer arranque: crea la cuenta que gestionará clientes, invitaciones, encuestas y usuarios.</p>
+    <form data-form="setup">
+      ${ui.setupToken ? '<div class="field"><label for="setup-token">Token de configuración</label><input id="setup-token" class="input" name="token" type="password" autocomplete="off" required></div>' : ''}
+      <div class="field"><label>Nombre</label><input class="input" name="nombre" required></div>
+      <div class="field"><label>Correo electrónico</label><input class="input" name="email" type="email" autocomplete="username" required></div>
+      <div class="field"><label>Contraseña (mínimo 8 caracteres)</label><input class="input" name="password" type="password" minlength="8" autocomplete="new-password" required></div>
+      ${ui.loginErr?`<div class="note err">${esc(ui.loginErr)}</div>`:''}
+      <button class="btn primary">Crear y entrar</button>
+    </form>
+  </div></div>`;
+}
+
+/* ---------- Respuestas de clientes (llegan desde el botón del correo) ---------- */
+const noLeidas = () => (DATA?.respuestas || []).filter(r=>!r.leido).length;
+const fdatetime = iso => new Date(iso).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+function respuestasCard(){
+  const rs = (DATA.respuestas || []).slice(0,8);
+  const n = noLeidas();
+  return `<div class="card" style="margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div><h2 style="display:inline">Respuestas de clientes</h2> ${n?pill(n+' nueva(s)','ok'):''}<div class="small muted">Lo que responden los clientes desde el botón del correo. Se actualiza solo.</div></div>
+      ${n?'<button class="btn sm" data-act="leidas">Marcar como leídas</button>':''}</div>
+    ${rs.length ? `<div style="margin-top:8px">${rs.map(r=>{ const c=DATA.clientes.find(x=>x.id===r.clienteId); return `<div class="tl resp-row" data-open="${r.clienteId}">
+      <div class="small muted">${fdatetime(r.respondido)}<br>${r.tipo==='encuesta'?'Encuesta':'Invitación'}</div>
+      <div><b>${esc(c?nombreC(c):r.clienteId)}</b> ${r.leido?'':pill('Nueva','ok')}<div>${esc(r.resumen)}</div></div></div>`; }).join('')}</div>`
+      : '<div class="empty" style="padding:16px">Aún no hay respuestas. Aparecerán aquí cuando un cliente pulse el botón del correo.</div>'}
+  </div>`;
+}
+
+/* ---------- Panel ---------- */
+function panelView(){
+  const cs = DATA.clientes;
+  const ms = cs.map(c=>({c,m:motor(c)}));
+  const count = s => ms.filter(x=>x.m.segmento===s).length;
+  const invitados = new Set(DATA.interacciones.filter(i=>i.evento==='Invitación test drive').map(i=>i.clienteId));
+  const conCita = new Set(DATA.interacciones.filter(i=>i.evento==='Cita confirmada').map(i=>i.clienteId));
+  const citasDeInvitados = [...conCita].filter(id=>invitados.has(id)).length;
+  const conv = invitados.size ? Math.round(citasDeInvitados/invitados.size*100)+'%' : '—';
+  const resp = DATA.encuestas.filter(e=>e.estado==='Respondida');
+  const satis = resp.length ? (resp.reduce((s,e)=>s+Number(e.respuestas.satisfaccion),0)/resp.length).toFixed(1) : '—';
+  const orden = {Alta:0,Media:1,Baja:2};
+  const pendientes = ms.filter(x=>x.m.segmento!=='Sin permiso').sort((a,b)=>orden[a.m.prioridad]-orden[b.m.prioridad] || a.c.compraDias-b.c.compraDias);
+  const max = Math.max(1,...SEGMENTOS.map(count));
+  return `
+  <div class="page-head"><div><h1>${isAdmin()?'Panel comercial':'Mi panel'}</h1><div class="muted">${isAdmin()?'Todos los clientes del concesionario':'Clientes asignados a '+esc(session.nombre)}</div></div></div>
+  ${isAdmin() && !DATA.correo.configurado ? `<div class="note warn" style="margin-bottom:14px">El envío de correos por Gmail aún no está configurado. Ve a <b>Equipo y correo</b> para ver cómo activarlo.</div>`:''}
+  ${respuestasCard()}
+  <div class="grid kpis">
+    <div class="card kpi"><div class="l">Clientes</div><div class="v">${cs.length}</div></div>
+    <div class="card kpi"><div class="l">Listos para prueba</div><div class="v">${count('Listo para prueba')}</div></div>
+    <div class="card kpi"><div class="l">Citas confirmadas</div><div class="v">${count('Cita confirmada')}</div></div>
+    <div class="card kpi"><div class="l">Conversión invitación → cita</div><div class="v">${conv}</div><div class="small muted">${citasDeInvitados} de ${invitados.size} invitados</div></div>
+    <div class="card kpi"><div class="l">Bloqueados GDPR</div><div class="v">${count('Sin permiso')}</div></div>
+    <div class="card kpi"><div class="l">Encuestas respondidas</div><div class="v">${resp.length}<span class="small muted"> / ${DATA.encuestas.length}</span></div><div class="small muted">Satisfacción media ${satis}</div></div>
+  </div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card">
+      <h2>Próximas acciones</h2><p class="small muted" style="margin:2px 0 10px">Ordenadas por urgencia de compra (Alta ≤30 días · Media 31–60 · Baja &gt;60)</p>
+      ${pendientes.length?`<div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Prioridad</th><th>Acción propuesta</th><th>Plazo</th></tr></thead><tbody>
+      ${pendientes.map(({c,m})=>`<tr class="click" data-open="${c.id}"><td><b>${esc(nombreC(c))}</b><div class="small muted">${c.id} · ${esc(c.asesor)}</div></td><td>${prioPill(m.prioridad)}</td><td>${esc(m.accion)}</td><td class="small">${esc(m.plazo)}</td></tr>`).join('')}
+      </tbody></table></div>`:'<div class="empty">No hay acciones pendientes</div>'}
+    </div>
+    <div class="card">
+      <h2>Clientes por segmento</h2><p class="small muted" style="margin:2px 0 10px">Salida del motor de recomendación</p>
+      ${SEGMENTOS.map(s=>`<div class="bar-row"><span>${s}</span><div class="bar"><i style="width:${count(s)/max*100}%"></i></div><b style="text-align:right">${count(s)}</b></div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ---------- Clientes ---------- */
+function clientesView(){
+  const q = ui.q.toLowerCase();
+  let cs = DATA.clientes.map(c=>({c,m:motor(c)}));
+  if(q) cs = cs.filter(({c})=>[c.id,c.nombre,c.apellido,c.email,c.telefono,c.asesor].join(' ').toLowerCase().includes(q));
+  if(ui.filtroSeg!=='Todos') cs = cs.filter(({m})=>m.segmento===ui.filtroSeg);
+  return `
+  <div class="page-head"><div><h1>${isAdmin()?'Clientes':'Mis clientes'}</h1><div class="muted">${isAdmin()?'Base de clientes guardada en la base de datos':'Consulta la ficha y registra cada interacción'}</div></div>
+    ${isAdmin()?`<div style="display:flex;gap:8px"><button class="btn" data-act="export">Exportar CSV</button><button class="btn primary" data-act="new-client">+ Nuevo cliente</button></div>`:''}</div>
+  <div class="toolbar">
+    <input class="input search" placeholder="Buscar por nombre, ID, email…" value="${esc(ui.q)}" data-input="q">
+    <select class="input" style="width:auto" data-input="filtroSeg">${['Todos',...SEGMENTOS].map(s=>`<option ${ui.filtroSeg===s?'selected':''}>${s}</option>`).join('')}</select>
+    <span class="small muted">${cs.length} cliente(s)</span>
+  </div>
+  ${cs.length?`<div class="table-wrap"><table><thead><tr><th>ID</th><th>Cliente</th><th>Origen</th><th>Permiso</th><th>Canal</th><th>Tecnología</th><th style="text-align:right">Presupuesto</th><th style="text-align:right">Compra</th><th>Carga</th><th>Vehículo</th><th>Asesor</th><th>Segmento</th>${isAdmin()?'<th></th>':''}</tr></thead><tbody>
+  ${cs.map(({c,m})=>`<tr class="click" data-open="${c.id}">
+    <td class="small muted">${c.id}</td><td><b>${esc(nombreC(c))}</b><div class="small muted">${c.permiso==='Si'?esc(c.canal==='Email'?c.email:c.telefono):'—'}</div></td>
+    <td>${esc(c.origen)}</td><td>${c.permiso==='Si'?pill('Sí','ok'):pill('No','danger')}</td><td>${esc(c.canal)}</td><td>${esc(c.tecnologia)}</td>
+    <td class="num">${eur(c.presupuesto)}</td><td class="num">${c.compraDias} d</td><td>${esc(c.carga)}</td><td class="small">${esc(m.v.modelo)}</td><td>${esc(c.asesor)}</td><td>${pill(m.segmento,m.tono)}</td>
+    ${isAdmin()?`<td style="white-space:nowrap"><button class="btn sm" data-edit="${c.id}">Editar</button> <button class="btn sm" data-survey="${c.id}" ${c.permiso!=='Si'?'disabled title="Sin permiso de contacto"':''}>Encuesta</button> <button class="btn sm" style="color:var(--danger)" data-del="${c.id}">Eliminar</button></td>`:''}
+  </tr>`).join('')}</tbody></table></div>`:'<div class="card empty">No hay clientes que coincidan con el filtro.</div>'}`;
+}
+
+function fichaView(id){
+  const c = DATA.clientes.find(x=>x.id===id); if(!c) return '<div class="empty">Cliente no encontrado</div>';
+  const m = motor(c);
+  const ints = intsDe(c.id).slice().reverse();
+  const contacto = c.permiso==='Si' ? (c.canal==='Email'?c.email:c.telefono) : '— (bloqueado GDPR)';
+  const alts = DATA.catalogo.filter(v=>v.tec===c.tecnologia).sort((a,b)=>a.precio-b.precio);
+  const encs = DATA.encuestas.filter(e=>e.clienteId===c.id);
+  const puedeInvitar = c.permiso==='Si' && !m.cita;
+  return `
+  <div class="d-head"><div><div class="small muted">${c.id} · Alta ${fdate(c.creado)}</div><h1>${esc(nombreC(c))}</h1></div>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+      ${isAdmin()?`<button class="btn sm primary" data-invone="${c.id}" ${puedeInvitar?'':'disabled'} title="${puedeInvitar?'':(m.cita?'Ya tiene cita':'Sin permiso de contacto')}">Enviar invitación test drive</button><button class="btn sm" data-edit="${c.id}">Editar</button><button class="btn sm" data-survey="${c.id}" ${c.permiso!=='Si'?'disabled':''}>Encuesta</button><button class="btn sm" style="color:var(--danger)" data-del="${c.id}">Eliminar</button>`:''}
+      <button class="x" data-act="close" aria-label="Cerrar">×</button></div></div>
+
+  <div class="card decision ${m.tono==='danger'?'blocked':m.tono==='warn'?'warn':''}">
+    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+      <div>${pill(m.segmento,m.tono)} ${prioPill('Prioridad '+m.prioridad)}</div><span class="small muted">Plazo: <b>${esc(m.plazo)}</b></span></div>
+    <h2 style="margin:10px 0 4px">${esc(m.accion)}</h2>
+    <div class="small muted">Regla aplicada: ${esc(m.regla)}</div>
+    <div class="small" style="margin-top:8px">Canal: <b>${esc(c.canal)}</b> · Contacto: <b>${esc(contacto)}</b></div>
+  </div>
+
+  <div class="sec-title"><h2>Perfil</h2></div>
+  <div class="card kv">
+    <div><span>Teléfono</span><b>${c.permiso==='Si'||isAdmin()?esc(c.telefono):'—'}</b></div>
+    <div><span>Correo electrónico</span><b style="word-break:break-all">${c.permiso==='Si'||isAdmin()?esc(c.email):'—'}</b></div>
+    <div><span>Origen</span><b>${esc(c.origen)}</b></div>
+    <div><span>Permiso contacto</span><b>${c.permiso==='Si'?'Sí':'No'}</b></div>
+    <div><span>Canal preferido</span><b>${esc(c.canal)}</b></div>
+    <div><span>Tecnología</span><b>${esc(c.tecnologia)}</b></div>
+    <div><span>Presupuesto</span><b>${eur(c.presupuesto)}</b></div>
+    <div><span>Compra en días</span><b>${c.compraDias}</b></div>
+    <div><span>Carga habitual</span><b>${esc(c.carga)}</b></div>
+    <div><span>Asesor</span><b>${esc(c.asesor)}</b></div>
+  </div>
+
+  <div class="sec-title"><h2>Vehículo para test drive</h2><span class="small muted">${m.alternativas} opción(es) ${esc(c.tecnologia)} dentro del presupuesto</span></div>
+  <div class="card">
+    <div class="car"><img src="img/${m.v.id}.jpg" alt="${esc(m.v.modelo)}">
+      <div><b>${esc(m.v.modelo)}</b> <span class="small muted">${m.v.id} · ${esc(m.v.version)}</span><div>${eur(m.v.precio)} · ${esc(m.v.tec)} ${m.v.disponible?pill('Test drive disponible','ok'):pill('No disponible','warn')}</div>
+      <div class="small">Margen: <b style="color:${m.margen>=0?'var(--ok)':'var(--danger)'}">${eur(m.margen)}</b></div></div></div>
+    <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>Opciones ${esc(c.tecnologia)}</th><th style="text-align:right">Precio</th><th style="text-align:right">Margen</th></tr></thead><tbody>
+      ${alts.map(v=>`<tr><td>${esc(v.modelo)} <span class="small muted">${v.id}</span>${v.id===m.v.id?' '+pill('Elegido','info'):''}</td><td class="num">${eur(v.precio)}</td><td class="num" style="color:${c.presupuesto-v.precio>=0?'var(--ok)':'var(--danger)'}">${eur(c.presupuesto-v.precio)}</td></tr>`).join('')}
+    </tbody></table></div>
+  </div>
+
+  ${encs.length?`<div class="sec-title"><h2>Encuestas</h2></div><div class="card">${encs.map(e=>encuestaRow(e,false)).join('')}</div>`:''}
+
+  <div class="sec-title"><h2>Historial</h2></div>
+  <div class="card">
+    <form class="form" data-form="interaccion" data-id="${c.id}">
+      <div class="field"><label>Evento</label><select class="input" name="evento">${OPCIONES.eventos.map(e=>`<option>${e}</option>`).join('')}</select></div>
+      <div class="field"><label>Canal</label><select class="input" name="canal">${OPCIONES.canalesInt.map(e=>`<option ${e===c.canal?'selected':''}>${e}</option>`).join('')}</select></div>
+      <div class="field full"><label>Resultado / evidencia</label><input class="input" name="resultado" required placeholder="Ej.: Acepta cita el 16/11 a las 11:00"></div>
+      <div class="field full"><label>Acción ejecutada (opcional)</label><input class="input" name="accion" value="${esc(m.segmento==='Sin permiso'?'':m.accion)}"></div>
+      <div class="full" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="small muted">Se registra como ${esc(session.nombre)}</span>
+        <button class="btn primary" ${c.permiso!=='Si'?'disabled title="Sin permiso de contacto"':''}>Registrar interacción</button></div>
+    </form>
+    <div style="margin-top:14px">
+      ${ints.length?ints.map(i=>`<div class="tl"><div class="small muted">${fdate(i.fecha)}<br>${esc(i.canal)}</div><div><b>${esc(i.evento)}</b> <span class="small muted">· ${esc(i.responsable)}</span><div>${esc(i.resultado)}</div>${i.accion?`<div class="small muted">Acción: ${esc(i.accion)}</div>`:''}</div></div>`).join(''):'<div class="empty">Sin interacciones todavía</div>'}
+    </div>
+  </div>`;
+}
+
+/* ---------- Formulario cliente (admin) ---------- */
+function clienteForm(c){
+  const nuevo = !c;
+  c = c || {nombre:'',apellido:'',telefono:'',email:'',origen:'Visita',permiso:'Si',canal:'Email',tecnologia:'BEV',presupuesto:'',compraDias:'',carga:'Si',asesor:asesores()[0]?.nombre||'',vehiculo:''};
+  const sel = (name, opts, val, labels) => `<select class="input" name="${name}">${opts.map((o,i)=>`<option value="${esc(o)}" ${String(o)===String(val??'')?'selected':''}>${esc(labels?labels[i]:o)}</option>`).join('')}</select>`;
+  const vOpts = [''].concat(DATA.catalogo.map(v=>v.id));
+  const vLabels = ['Automático: el que recomiende el sistema'].concat(DATA.catalogo.map(v=>`${v.id} · ${v.modelo} · ${v.tec} · ${eur(v.precio)}`));
+  const correoOk = DATA.correo.configurado;
+  return `<div class="d-head"><h2>${nuevo?'Nuevo cliente':'Editar '+esc(c.id)}</h2><button class="x" data-act="close-modal" aria-label="Cerrar">×</button></div>
+  <form class="form" data-form="cliente" data-id="${nuevo?'':c.id}" novalidate>
+    <div class="field"><label>Nombre *</label><input class="input" name="nombre" value="${esc(c.nombre)}" required></div>
+    <div class="field"><label>Apellido *</label><input class="input" name="apellido" value="${esc(c.apellido)}" required></div>
+    <div class="field"><label>Teléfono *</label><input class="input" name="telefono" type="tel" value="${esc(c.telefono)}" placeholder="+34 600 000 000" required></div>
+    <div class="field"><label>Correo electrónico *</label><input class="input" name="email" type="email" value="${esc(c.email)}" placeholder="nombre@dominio.com" required></div>
+    <div class="field"><label>Origen</label>${sel('origen',['Web','Visita','Evento','Referido'],c.origen)}</div>
+    <div class="field"><label>Permiso contacto</label>${sel('permiso',['Si','No'],c.permiso,['Sí','No'])}</div>
+    <div class="field"><label>Canal preferido</label>${sel('canal',['Email','Telefono'],c.canal,['Email','Teléfono'])}</div>
+    <div class="field"><label>Tecnología preferida</label>${sel('tecnologia',['BEV','PHEV','HEV'],c.tecnologia,['BEV · eléctrico','PHEV · híbrido enchufable','HEV · híbrido'])}</div>
+    <div class="field"><label>Presupuesto (EUR) *</label><input class="input" name="presupuesto" type="number" min="0" step="100" value="${esc(c.presupuesto)}" required></div>
+    <div class="field"><label>Compra en días *</label><input class="input" name="compraDias" type="number" min="0" step="1" value="${esc(c.compraDias)}" required></div>
+    <div class="field"><label>Carga habitual</label>${sel('carga',['Si','No','Por confirmar'],c.carga,['Sí','No','Por confirmar'])}</div>
+    <div class="field"><label>Asesor</label>${sel('asesor',asesores().map(a=>a.nombre),c.asesor)}</div>
+    <div class="field full"><label>Vehículo para test drive</label>${sel('vehiculo',vOpts,nuevo?'':c.vehiculo,vLabels)}</div>
+    <div class="full" id="reco-box"><div class="note">Indica tecnología y presupuesto para ver el vehículo recomendado.</div></div>
+    ${nuevo?`<div class="full">
+      <label class="check"><input type="checkbox" name="enviarInvitacion" ${correoOk?'checked':'disabled'}> <span>Enviar ahora la invitación al test drive por correo al cliente${correoOk?'':' <span class="muted">(correo Gmail no configurado)</span>'}</span></label>
+      <div class="field" style="margin-top:8px"><label>Fecha y hora propuestas para el test drive (Madrid, opcional)</label><input class="input" type="datetime-local" name="fecha"></div>
+    </div>`:''}
+    <div class="full err-box"></div>
+    <div class="full form-foot" style="margin-top:0"><button type="button" class="btn" data-act="close-modal">Cancelar</button><button class="btn primary">${nuevo?'Crear cliente':'Guardar cambios'}</button></div>
+  </form>`;
+}
+
+let recoTimer = null, recoSeq = 0;
+function pedirRecomendacion(){
+  clearTimeout(recoTimer);
+  recoTimer = setTimeout(async ()=>{
+    const f = $('[data-form="cliente"]'); const box = $('#reco-box'); if(!f || !box) return;
+    const tecnologia = f.elements.tecnologia.value, presupuesto = Number(f.elements.presupuesto.value), carga = f.elements.carga.value;
+    if(!presupuesto){ box.innerHTML = '<div class="note">Indica tecnología y presupuesto para ver el vehículo recomendado.</div>'; return; }
+    const seq = ++recoSeq;
+    try{
+      const r = await api('POST','/api/recomendar',{tecnologia,presupuesto,carga});
+      if(seq !== recoSeq || !$('#reco-box')) return;
+      box.innerHTML = recoCard(r, f.elements.vehiculo.value);
+    }catch(e){ box.innerHTML = `<div class="note err">${esc(e.message)}</div>`; }
+  }, 250);
+}
+function recoCard(r, manual){
+  if(!r.vehiculo) return `<div class="note warn">${esc(r.motivo)}</div>`;
+  const v = r.vehiculo, ok = r.estado==='ok';
+  const man = manual && manual !== v.id ? vehiculo(manual) : null;
+  return `<div class="reco ${ok?'':'warn'}">
+    <div class="small muted" style="margin-bottom:6px">Recomendación del catálogo para el test drive</div>
+    <div class="car"><img src="img/${v.id}.jpg" alt="${esc(v.modelo)}">
+      <div><b>${esc(v.modelo)}</b> <span class="small muted">${v.id} · ${esc(v.version)}</span>
+        <div>${eur(v.precio)} · ${esc(v.tec)} · margen <b>${eur(r.margen)}</b></div>
+        <div class="small">${esc(r.motivo)}</div>
+        ${r.aviso?`<div class="small" style="color:var(--warn)">${esc(r.aviso)}</div>`:''}
+        ${r.alternativas.length>1?`<div class="small muted">También caben: ${r.alternativas.filter(a=>a.id!==v.id).map(a=>esc(a.modelo)+' ('+eur(a.precio)+')').join(', ')}</div>`:''}
+        ${r.estado==='presupuesto' && r.otraTecnologia?`<div class="small muted">Alternativa en otra tecnología dentro del presupuesto: ${esc(r.otraTecnologia.modelo)} (${esc(r.otraTecnologia.tec)}, ${eur(r.otraTecnologia.precio)})</div>`:''}
+      </div></div>
+    ${man?`<div class="small" style="margin-top:8px">Has elegido manualmente <b>${esc(man.modelo)}</b>: se usará ese en lugar del recomendado.</div>`:''}
+  </div>`;
+}
+
+async function guardarCliente(form){
+  const f = Object.fromEntries(new FormData(form));
+  f.enviarInvitacion = !!form.elements.enviarInvitacion?.checked;
+  const id = form.dataset.id;
+  const btn = form.querySelector('button.primary');
+  form.querySelector('.err-box').innerHTML = '';
+  try{
+    const r = await busy(btn, ()=> id ? api('PUT','/api/clientes/'+id, f) : api('POST','/api/clientes', f));
+    await refresh();
+    closeModal(); render();
+    if(id){ toast('Cliente actualizado'); if(openDrawerId) openDrawer(openDrawerId); }
+    else openModal(resultadoAlta(r));
+  }catch(e){
+    const errs = e.data?.errores || [e.message];
+    form.querySelector('.err-box').innerHTML = `<div class="note err">${errs.map(esc).join('<br>')}</div>`;
+  }
+}
+function resultadoAlta(r){
+  const c = r.cliente, reco = r.recomendacion, env = r.envio, v = vehiculo(c.vehiculo);
+  return `<div class="d-head"><div><div class="small muted">${c.id}</div><h2>Cliente creado: ${esc(nombreC(c))}</h2></div><button class="x" data-act="close-modal">×</button></div>
+  ${v?`<div class="reco ${reco.estado==='ok'?'':'warn'}"><div class="small muted" style="margin-bottom:6px">Vehículo recomendado para el test drive</div>
+    <div class="car"><img src="img/${v.id}.jpg" alt="${esc(v.modelo)}"><div><b>${esc(v.modelo)}</b> <span class="small muted">${v.id} · ${esc(v.version)}</span>
+    <div>${eur(v.precio)} · ${esc(v.tec)} · presupuesto ${eur(c.presupuesto)}</div><div class="small">${esc(reco.motivo)}</div>${reco.aviso?`<div class="small" style="color:var(--warn)">${esc(reco.aviso)}</div>`:''}</div></div></div>`:''}
+  <div class="card" style="margin-top:12px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+    <div><b>Invitación por correo</b><div class="small muted">${esc(env.detalle)}</div></div>${envioPill(env.estado)}</div>
+  <div class="form-foot"><button class="btn" data-open="${c.id}">Ver ficha</button><button class="btn primary" data-act="close-modal">Listo</button></div>`;
+}
+
+/* ---------- Invitaciones test drive (admin) ---------- */
+function invCandidatos(){
+  let cs = DATA.clientes;
+  if(ui.invFiltro==='visita') cs = cs.filter(visitoConcesionario);
+  if(ui.invFiltro==='listos') cs = cs.filter(c=>motor(c).segmento==='Listo para prueba');
+  return cs.map(c=>({c,m:motor(c)}));
+}
+const elegibleInv = (c,m) => c.permiso==='Si' && m.segmento!=='Cita confirmada';
+function rellenar(tpl,c,m){
+  const fecha = ui.invFecha ? new Date(ui.invFecha).toLocaleString('es-ES',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}) : 'la fecha que tú elijas';
+  const tecnom = {BEV:'100% eléctrico',PHEV:'híbrido enchufable',HEV:'híbrido'}[m.v.tec] || m.v.tec;
+  return tpl.replaceAll('{nombre}',c.nombre).replaceAll('{apellido}',c.apellido).replaceAll('{vehiculo}',m.v.modelo).replaceAll('{tecnologia}',tecnom).replaceAll('{asesor}',c.asesor).replaceAll('{fecha}',fecha).replaceAll('{precio}',eur(m.v.precio));
+}
+function invitacionesView(){
+  const cand = invCandidatos();
+  if(!ui.invSel) ui.invSel = new Set(cand.filter(({c,m})=>elegibleInv(c,m)).map(({c})=>c.id));
+  const selList = cand.filter(({c,m})=>ui.invSel.has(c.id) && elegibleInv(c,m));
+  const primero = selList[0];
+  return `
+  <div class="page-head"><div><h1>Invitaciones a test drive</h1><div class="muted">Invita por correo a clientes históricos que han visitado el concesionario</div></div></div>
+  ${!DATA.correo.configurado?`<div class="note warn" style="margin-bottom:14px">El correo Gmail no está configurado: las invitaciones no se podrán enviar. Mira <b>Equipo y correo</b>.</div>`:''}
+  <div class="grid two">
+    <div>
+      <div class="toolbar"><div class="chips">
+        ${[['visita','Visitaron el concesionario'],['listos','Listos para prueba'],['todos','Todos los clientes']].map(([k,l])=>`<button class="chip ${ui.invFiltro===k?'on':''}" data-invfiltro="${k}">${l}</button>`).join('')}
+      </div></div>
+      ${cand.length?`<div class="table-wrap"><table><thead><tr><th><input type="checkbox" data-act="inv-all" ${selList.length&&selList.length===cand.filter(({c,m})=>elegibleInv(c,m)).length?'checked':''} aria-label="Seleccionar todos"></th><th>Cliente</th><th>Vehículo</th><th>Segmento</th><th>Estado</th></tr></thead><tbody>
+      ${cand.map(({c,m})=>{ const ok=elegibleInv(c,m); return `<tr>
+        <td><input type="checkbox" data-invsel="${c.id}" ${ok&&ui.invSel.has(c.id)?'checked':''} ${ok?'':'disabled'}></td>
+        <td><b>${esc(nombreC(c))}</b><div class="small muted">${c.id} · ${esc(c.email)}</div></td>
+        <td class="small">${esc(m.v.modelo)}</td><td>${pill(m.segmento,m.tono)}</td>
+        <td class="small">${c.permiso!=='Si'?pill('Bloqueado GDPR','danger'):m.segmento==='Cita confirmada'?pill('Ya tiene cita','info'):m.invitado?pill('Ya invitado','mute'):'—'}</td></tr>`;}).join('')}
+      </tbody></table></div>`:'<div class="card empty">No hay clientes en este filtro.</div>'}
+      <p class="note" style="margin-top:10px">Clientes sin permiso de contacto: bloqueados (GDPR). Con cita confirmada: no se vuelven a invitar. Los correos de demostración (@example.com) se omiten.</p>
+    </div>
+    <div class="card">
+      <h2>Mensaje</h2>
+      <div class="field" style="margin-top:10px"><label>Fecha y hora propuestas (Madrid, opcional)</label><input class="input" type="datetime-local" value="${esc(ui.invFecha)}" data-input="invFecha"></div>
+      <div class="field" style="margin-top:10px"><label>Plantilla · variables: {nombre} {vehiculo} {tecnologia} {precio} {asesor} {fecha}</label>
+        <textarea class="input" rows="11" data-input="plantilla">${esc(DATA.plantillaInvitacion)}</textarea></div>
+      <h3 style="margin:14px 0 6px">Vista previa ${primero?'· '+esc(nombreC(primero.c)):''}</h3>
+      <div class="preview" id="inv-preview">${primero?esc(rellenar(DATA.plantillaInvitacion,primero.c,primero.m)):'Selecciona al menos un cliente.'}</div>
+      <p class="small muted">El correo incluye la foto del vehículo, su ficha, la fecha y un botón para que el cliente responda. Su respuesta llega al panel del CRM.</p>
+      ${/^http:\/\/(localhost|127\.)/.test(DATA.publicUrl||'')?`<p class="note warn">Modo local: el botón del correo abre <b>${esc(DATA.publicUrl)}</b>, que solo funciona en este equipo. Para clientes reales configura PUBLIC_URL con la dirección HTTPS del CRM.</p>`:''}
+      <div class="form-foot"><button class="btn" data-act="inv-preview" ${primero?'':'disabled'}>Ver el correo</button><button class="btn primary" data-act="inv-send" ${selList.length&&DATA.correo.configurado?'':'disabled'}>Enviar ${selList.length} invitación(es) por correo</button></div>
+    </div>
+  </div>`;
+}
+function resultadosModal(titulo, resultados){
+  const n = t => resultados.filter(r=>r.estado===t).length;
+  return `<div class="d-head"><div><h2>${esc(titulo)}</h2><div class="small muted">${n('enviado')} enviado(s) · ${n('error')} con error · ${resultados.length-n('enviado')-n('error')} no enviado(s)</div></div><button class="x" data-act="close-modal">×</button></div>
+  <div class="table-wrap"><table><tbody>${resultados.map(r=>`<tr><td><b>${esc(r.nombre)}</b><div class="small muted">${esc(r.email)}</div></td><td class="small">${esc(r.detalle)}</td><td style="text-align:right">${envioPill(r.estado)}</td></tr>`).join('')}</tbody></table></div>
+  <div class="form-foot"><button class="btn primary" data-act="close-modal">Listo</button></div>`;
+}
+async function enviarInvitaciones(ids, btn){
+  try{
+    const r = await busy(btn, ()=>api('POST','/api/invitaciones',{ids, fecha:ui.invFecha, plantilla:DATA.plantillaInvitacion}));
+    await refresh(); render(); refreshDrawer();
+    openModal(resultadosModal('Invitaciones a test drive', r.resultados));
+  }catch(e){ toast(e.message); }
+}
+
+/* ---------- Encuestas (admin) ---------- */
+function encuestaRow(e, conCliente=true){
+  const c = DATA.clientes.find(x=>x.id===e.clienteId);
+  const r = e.respuestas;
+  return `<div class="tl"><div class="small muted">${fdate(e.enviada)}<br>${esc(e.canal)}</div><div>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><div><b>${esc(e.tipo)}</b>${conCliente&&c?` · <a href="#" data-open="${c.id}">${esc(nombreC(c))}</a>`:''}</div>${e.estado==='Respondida'?pill('Respondida','ok'):pill('Pendiente','warn')}</div>
+    ${r?`<div class="small">Satisfacción ${r.satisfaccion}/5 · Recomendaría ${r.nps}/10 · Interés en test drive: <b>${esc(r.interes)}</b>${r.comentario?`<div class="muted">“${esc(r.comentario)}”</div>`:''}</div>`:(isAdmin()?`<button class="btn sm" style="margin-top:6px" data-encresp="${e.id}">Registrar respuesta</button>`:'')}
+  </div></div>`;
+}
+function encuestasView(){
+  const encs = DATA.encuestas.slice().reverse();
+  const elig = DATA.clientes.filter(c=>c.permiso==='Si');
+  const resp = DATA.encuestas.filter(e=>e.estado==='Respondida');
+  const nps = resp.length ? Math.round((resp.filter(e=>e.respuestas.nps>=9).length - resp.filter(e=>e.respuestas.nps<=6).length)/resp.length*100) : null;
+  return `
+  <div class="page-head"><div><h1>Encuestas</h1><div class="muted">Envía encuestas por correo a clientes con permiso y registra sus respuestas</div></div></div>
+  <div class="grid kpis" style="margin-bottom:14px">
+    <div class="card kpi"><div class="l">Enviadas</div><div class="v">${DATA.encuestas.length}</div></div>
+    <div class="card kpi"><div class="l">Respondidas</div><div class="v">${resp.length}</div></div>
+    <div class="card kpi"><div class="l">NPS</div><div class="v">${nps===null?'—':nps}</div></div>
+    <div class="card kpi"><div class="l">Quieren test drive</div><div class="v">${resp.filter(e=>e.respuestas.interes==='Sí').length}</div></div>
+  </div>
+  <div class="grid two">
+    <div class="card"><h2>Historial de encuestas</h2>
+      <div style="margin-top:8px">${encs.length?encs.map(e=>encuestaRow(e)).join(''):'<div class="empty">Aún no se ha enviado ninguna encuesta.</div>'}</div></div>
+    <div class="card"><h2>Disparar encuesta</h2>
+      <div class="field" style="margin-top:10px"><label>Tipo</label><select class="input" id="enc-tipo">${TIPOS_ENC.map(t=>`<option>${t}</option>`).join('')}</select></div>
+      <div class="field" style="margin-top:10px"><label>Destinatarios (${ui.encSel.size} seleccionados)</label>
+        <div class="table-wrap" style="max-height:300px;overflow-y:auto"><table><tbody>
+        ${elig.map(c=>`<tr><td style="width:30px"><input type="checkbox" data-encsel="${c.id}" ${ui.encSel.has(c.id)?'checked':''}></td><td>${esc(nombreC(c))} <span class="small muted">${c.id} · ${esc(c.email)}</span></td></tr>`).join('')}
+        </tbody></table></div></div>
+      <p class="small muted">Solo aparecen clientes con permiso de contacto.</p>
+      <div class="form-foot"><button class="btn primary" data-act="enc-send" ${ui.encSel.size?'':'disabled'}>Disparar encuesta</button></div>
+    </div>
+  </div>`;
+}
+async function dispararEncuesta(ids, tipo, btn){
+  try{
+    const r = await busy(btn, ()=>api('POST','/api/encuestas',{ids, tipo}));
+    ui.encSel = new Set(); await refresh(); render(); refreshDrawer();
+    openModal(resultadosModal('Encuestas', r.resultados));
+  }catch(e){ toast(e.message); }
+}
+function encuestaRapida(id){
+  const c = DATA.clientes.find(x=>x.id===id);
+  return `<div class="d-head"><div><h2>Disparar encuesta</h2><div class="small muted">${esc(nombreC(c))} · ${esc(c.email)}</div></div><button class="x" data-act="close-modal">×</button></div>
+  <div class="field"><label>Tipo de encuesta</label><select class="input" id="encq-tipo">${TIPOS_ENC.map(t=>`<option>${t}</option>`).join('')}</select></div>
+  <p class="small muted">Se envía por correo con 4 preguntas: satisfacción (1–5), recomendación (0–10), interés en test drive y comentario.</p>
+  <div class="form-foot"><button class="btn" data-act="close-modal">Cancelar</button><button class="btn primary" data-act="enc-quick" data-id="${c.id}">Disparar</button></div>`;
+}
+function encRespForm(e){
+  const c = DATA.clientes.find(x=>x.id===e.clienteId);
+  return `<div class="d-head"><div><h2>Respuesta de ${esc(nombreC(c))}</h2><div class="small muted">${esc(e.tipo)} · enviada ${fdate(e.enviada)}</div></div><button class="x" data-act="close-modal">×</button></div>
+  <form data-form="encresp" data-id="${e.id}" class="form">
+    <div class="field full"><label>1. Satisfacción con la atención (1–5)</label><div class="stars">${[1,2,3,4,5].map(n=>`<label><input type="radio" name="satisfaccion" value="${n}" required ${n===4?'checked':''}> ${n}</label>`).join('')}</div></div>
+    <div class="field"><label>2. ¿Nos recomendaría? (0–10)</label><input class="input" type="number" name="nps" min="0" max="10" value="8" required></div>
+    <div class="field"><label>3. ¿Quiere un test drive?</label><select class="input" name="interes"><option>Sí</option><option>Más adelante</option><option>No</option></select></div>
+    <div class="field full"><label>4. Comentario</label><textarea class="input" name="comentario" rows="3"></textarea></div>
+    <p class="full note">Si responde "Sí" al test drive, se registra una <b>Solicitud prueba</b> en su historial y el motor recalcula su segmento.</p>
+    <div class="full err-box"></div>
+    <div class="full form-foot" style="margin-top:0"><button type="button" class="btn" data-act="close-modal">Cancelar</button><button class="btn primary">Guardar respuesta</button></div>
+  </form>`;
+}
+
+/* ---------- Catálogo ---------- */
+function catalogoView(){
+  return `<div class="page-head"><div><h1>Catálogo</h1><div class="muted">Precios de referencia consultados el 23/11/2026. Confirmar precio final y stock antes de ofrecer.</div></div></div>
+  <div class="grid cat-grid">${DATA.catalogo.map(v=>`<div class="card cat-card"><img src="img/${v.id}.jpg" alt="${esc(v.modelo)}" loading="lazy">
+    <div class="body"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(v.modelo)}</b>${pill(v.tec, v.tec==='BEV'?'ok':v.tec==='PHEV'?'info':'mute')}</div>
+    <div class="small muted">${v.id} · ${esc(v.version)}</div>
+    <div style="font-size:18px;font-weight:700;margin:6px 0">${eur(v.precio)}</div>
+    <div class="small">${esc(v.uso)} · Recarga externa: ${esc(v.recarga)}</div>
+    <div class="small muted">${esc(v.base)}</div>
+    <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:8px">${v.disponible?pill('Test drive disponible','ok'):pill('No disponible','warn')}
+      ${isAdmin()?`<button class="btn sm" data-toggle-td="${v.id}">${v.disponible?'Marcar no disponible':'Marcar disponible'}</button>`:''}</div>
+    </div></div>`).join('')}</div>`;
+}
+
+/* ---------- Equipo y correo (admin) ---------- */
+function equipoView(){
+  const co = DATA.correo;
+  return `<div class="page-head"><div><h1>Equipo y correo</h1><div class="muted">Usuarios con acceso al CRM y configuración del envío por Gmail</div></div></div>
+  <div class="grid two">
+    <div>
+      <div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Rol</th><th>Acceso</th><th style="text-align:right">Clientes</th><th></th></tr></thead><tbody>
+      ${DATA.usuarios.map(u=>`<tr><td><b>${esc(u.nombre)}</b><div class="small muted">${esc(u.email||'sin correo')}</div></td><td><span class="role-badge ${u.rol==='admin'?'admin':''}">${u.rol==='admin'?'Administrador':'Usuario estándar'}</span></td>
+        <td>${u.acceso?pill('Activo','ok'):pill('Sin contraseña','warn')}</td><td class="num">${u.rol==='admin'?'Todos':DATA.clientes.filter(c=>c.asesor===u.nombre).length}</td>
+        <td style="text-align:right">${u.id!==session.id?`<button class="btn sm" data-acceso="${u.id}">${u.acceso?'Cambiar contraseña':'Dar acceso'}</button>`:''}</td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="card" style="margin-top:14px"><h2>Añadir usuario</h2>
+        <form data-form="usuario" class="form" style="margin-top:10px">
+          <div class="field"><label>Nombre</label><input class="input" name="nombre" required></div>
+          <div class="field"><label>Rol</label><select class="input" name="rol"><option value="estandar">Usuario estándar (asesor)</option><option value="admin">Administrador</option></select></div>
+          <div class="field"><label>Correo electrónico (usuario de acceso)</label><input class="input" name="email" type="email" required></div>
+          <div class="field"><label>Contraseña inicial (mín. 8)</label><input class="input" name="password" type="password" minlength="8" autocomplete="new-password" required></div>
+          <div class="full err-box"></div>
+          <div class="full form-foot" style="margin-top:0"><button class="btn primary">Añadir</button></div>
+        </form>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Correo Gmail</h2>
+      <div style="margin:10px 0">${co.configurado?pill('Configurado','ok')+` <span class="small">Remitente: <b>${esc(co.remitente)}</b></span>`:pill('No configurado','warn')}</div>
+      ${co.configurado?`
+        <form data-form="test-email" class="form" style="grid-template-columns:1fr auto;align-items:end">
+          <div class="field"><label>Enviar un correo de prueba a</label><input class="input" name="to" type="email" required placeholder="tu@correo.com"></div>
+          <button class="btn">Probar</button>
+        </form>`:`
+        <ol class="small" style="padding-left:18px;margin:0">
+          <li>Configura <b>GMAIL_USER</b> y <b>GMAIL_APP_PASSWORD</b> en el archivo <b>.env</b> del servidor o como secretos de la plataforma.</li>
+          <li>Reinicia el servicio y envía un correo de prueba desde esta pantalla.</li>
+        </ol>`}
+      <div class="note" style="margin-top:12px"><b>Administrador:</b> crea y edita clientes, envía invitaciones y encuestas, gestiona catálogo y equipo.<br><b>Usuario estándar:</b> ve solo sus clientes asignados, consulta la recomendación y registra interacciones.</div>
+    </div>
+  </div>`;
+}
+function accesoForm(u){
+  return `<div class="d-head"><h2>Acceso de ${esc(u.nombre)}</h2><button class="x" data-act="close-modal">×</button></div>
+  <form data-form="acceso" data-id="${u.id}" class="form">
+    <div class="field full"><label>Correo electrónico (usuario de acceso)</label><input class="input" name="email" type="email" value="${esc(u.email||'')}" required></div>
+    <div class="field full"><label>Nueva contraseña (mín. 8)</label><input class="input" name="password" type="password" minlength="8" autocomplete="new-password" required></div>
+    <div class="full err-box"></div>
+    <div class="full form-foot" style="margin-top:0"><button type="button" class="btn" data-act="close-modal">Cancelar</button><button class="btn primary">Guardar</button></div>
+  </form>`;
+}
+
+/* =========================================================
+   Drawer / modal
+   ========================================================= */
+let openDrawerId = null;
+function openDrawer(id){
+  closeDrawerEl(); openDrawerId = id;
+  const o = document.createElement('div'); o.className='overlay'; o.id='drawer';
+  o.innerHTML = `<div class="drawer">${fichaView(id)}</div>`;
+  o.addEventListener('click',e=>{ if(e.target===o) closeDrawer(); });
+  document.body.appendChild(o);
+}
+function closeDrawerEl(){ $('#drawer')?.remove(); }
+function closeDrawer(){ closeDrawerEl(); openDrawerId=null; }
+function openModal(html, size){
+  closeModal();
+  const o = document.createElement('div'); o.className='overlay modal-wrap'; o.id='modal';
+  o.innerHTML = `<div class="modal ${size==='wide'?'wide':''}">${html}</div>`;
+  o.addEventListener('click',e=>{ if(e.target===o) closeModal(); });
+  document.body.appendChild(o);
+}
+function closeModal(){ $('#modal')?.remove(); }
+function refreshDrawer(){ if(openDrawerId){ const d=$('#drawer .drawer'); if(d){ const st=d.scrollTop; d.innerHTML=fichaView(openDrawerId); d.scrollTop=st; } } }
+async function formErr(form, fn){
+  const box = form.querySelector('.err-box'); if(box) box.innerHTML='';
+  try{ await busy(form.querySelector('button.primary, button:not([type])'), fn); return true; }
+  catch(e){ if(box) box.innerHTML = `<div class="note err">${esc(e.message)}</div>`; else toast(e.message); return false; }
+}
+
+/* =========================================================
+   Eventos
+   ========================================================= */
+document.addEventListener('click', async e=>{
+  const t = e.target.closest('[data-nav],[data-act],[data-open],[data-edit],[data-survey],[data-invfiltro],[data-invone],[data-encresp],[data-toggle-td],[data-acceso],[data-del]');
+  if(!t || t.disabled) return;
+  const d = t.dataset;
+  if(d.nav){ view=d.nav; ui.navOpen=false; ui.q=''; ui.filtroSeg='Todos'; render(); window.scrollTo(0,0); return; }
+  if(d.open){ e.preventDefault(); closeModal(); openDrawer(d.open); return; }
+  if(d.edit){ openModal(clienteForm(DATA.clientes.find(c=>c.id===d.edit))); pedirRecomendacion(); return; }
+  if(d.del){
+    const c = DATA.clientes.find(x=>x.id===d.del); if(!c) return;
+    const nInt = intsDe(c.id).length, nEnc = DATA.encuestas.filter(x=>x.clienteId===c.id).length;
+    openModal(`<div class="d-head"><div><h2>¿Eliminar a ${esc(nombreC(c))}?</h2><div class="small muted">${c.id} · ${esc(c.email)}</div></div><button class="x" data-act="close-modal">×</button></div>
+      <p>Se borrará <b>definitivamente</b> su perfil, su historial (${nInt} interacciones), sus encuestas (${nEnc}), sus enlaces de respuesta y el registro de correos enviados.</p>
+      <div class="note err">Esta acción no se puede deshacer.</div>
+      <div class="form-foot"><button class="btn" data-act="close-modal">Cancelar</button><button class="btn primary" style="background:var(--danger);border-color:var(--danger)" data-act="del-confirm" data-id="${c.id}">Eliminar definitivamente</button></div>`);
+    return;
+  }
+  if(d.survey){ openModal(encuestaRapida(d.survey)); return; }
+  if(d.invfiltro){ ui.invFiltro=d.invfiltro; ui.invSel=null; render(); return; }
+  if(d.invone){ enviarInvitaciones([d.invone], t); return; }
+  if(d.encresp){ openModal(encRespForm(DATA.encuestas.find(x=>x.id===d.encresp))); return; }
+  if(d.acceso){ openModal(accesoForm(DATA.usuarios.find(u=>String(u.id)===d.acceso))); return; }
+  if(d.toggleTd){ const v=vehiculo(d.toggleTd); try{ await api('POST',`/api/catalogo/${v.id}/disponible`,{disponible:!v.disponible}); await refresh(); render(); }catch(err){ toast(err.message); } return; }
+  switch(d.act){
+    case 'logout': try{ await api('POST','/api/logout',{}); }catch(_){} session=null; DATA=null; ui.loginErr=''; closeDrawer(); closeModal(); render(); break;
+    case 'nav-toggle': ui.navOpen=!ui.navOpen; render(); break;
+    case 'close': closeDrawer(); break;
+    case 'close-modal': closeModal(); break;
+    case 'new-client': openModal(clienteForm(null)); break;
+    case 'export': exportCSV(); break;
+    case 'del-confirm': {
+      const id = d.id;
+      try{ await busy(t, ()=>api('DELETE','/api/clientes/'+id)); closeModal(); closeDrawer(); await refresh(); render(); toast(`Cliente ${id} eliminado`); }
+      catch(err){ toast(err.message); }
+      break;
+    }
+    case 'leidas': try{ await api('POST','/api/respuestas/leidas',{}); await refresh(); render(); }catch(err){ toast(err.message); } break;
+    case 'inv-preview': {
+      const p = invCandidatos().find(({c,m})=>ui.invSel.has(c.id)&&elegibleInv(c,m)); if(!p) break;
+      try{ await api('PUT','/api/plantilla',{plantilla:DATA.plantillaInvitacion}); }catch(_){}
+      const src = `/api/correo/vista-previa?cliente=${encodeURIComponent(p.c.id)}&fecha=${encodeURIComponent(ui.invFecha||'')}`;
+      openModal(`<div class="d-head"><div><h2>Así verá el correo ${esc(nombreC(p.c))}</h2><div class="small muted">Vista previa con su vehículo recomendado. El botón no funciona en la vista previa.</div></div><button class="x" data-act="close-modal">×</button></div><iframe class="preview-frame" src="${esc(src)}" title="Vista previa del correo"></iframe>`, 'wide');
+      break;
+    }
+    case 'inv-send': enviarInvitaciones(invCandidatos().filter(({c,m})=>ui.invSel.has(c.id)&&elegibleInv(c,m)).map(({c})=>c.id), t); break;
+    case 'enc-send': dispararEncuesta([...ui.encSel], $('#enc-tipo').value, t); break;
+    case 'enc-quick': dispararEncuesta([d.id], $('#encq-tipo').value, t); break;
+  }
+});
+document.addEventListener('change', async e=>{
+  const t = e.target, d = t.dataset;
+  if(d.invsel){ t.checked ? ui.invSel.add(d.invsel) : ui.invSel.delete(d.invsel); render(); }
+  else if(d.act==='inv-all'){ const el = invCandidatos().filter(({c,m})=>elegibleInv(c,m)).map(({c})=>c.id); ui.invSel = new Set(t.checked?el:[]); render(); }
+  else if(d.encsel){ t.checked ? ui.encSel.add(d.encsel) : ui.encSel.delete(d.encsel); render(); }
+  else if(d.input==='filtroSeg'){ ui.filtroSeg=t.value; render(); }
+  else if(d.input==='invFecha'){ ui.invFecha=t.value; render(); }
+  else if(d.input==='plantilla'){ try{ await api('PUT','/api/plantilla',{plantilla:t.value}); toast('Plantilla guardada'); }catch(err){ toast(err.message); } }
+  else if(t.form?.dataset.form==='cliente' && ['tecnologia','carga','vehiculo'].includes(t.name)) pedirRecomendacion();
+});
+document.addEventListener('input', e=>{
+  const t = e.target, d = t.dataset;
+  if(d.input==='q'){ ui.q=t.value; const pos=t.selectionStart; render(); const n=$('[data-input="q"]'); n.focus(); n.setSelectionRange(pos,pos); }
+  if(d.input==='plantilla'){ DATA.plantillaInvitacion=t.value;
+    const p = invCandidatos().find(({c,m})=>ui.invSel.has(c.id)&&elegibleInv(c,m)); if(p) $('#inv-preview').textContent = rellenar(DATA.plantillaInvitacion,p.c,p.m); }
+  if(t.form?.dataset.form==='cliente' && t.name==='presupuesto') pedirRecomendacion();
+});
+document.addEventListener('submit', async e=>{
+  const f = e.target; e.preventDefault();
+  const v = Object.fromEntries(new FormData(f));
+  switch(f.dataset.form){
+    case 'login':
+    case 'setup': {
+      const btn = f.querySelector('button');
+      try{
+        await busy(btn, ()=>api('POST', f.dataset.form==='login'?'/api/login':'/api/setup', v));
+        ui.loginErr=''; ui.needsSetup=false; view='panel'; ui.invSel=null; await refresh(); render();
+      }catch(err){ ui.loginErr = err.message; render(); }
+      break;
+    }
+    case 'cliente': guardarCliente(f); break;
+    case 'interaccion':
+      if(await formErr(f, ()=>api('POST','/api/interacciones',{clienteId:f.dataset.id, ...v}))){ toast('Interacción registrada'); await refresh(); render(); refreshDrawer(); }
+      break;
+    case 'encresp':
+      if(await formErr(f, ()=>api('POST',`/api/encuestas/${f.dataset.id}/respuesta`, v))){ closeModal(); toast('Respuesta guardada'); await refresh(); render(); refreshDrawer(); }
+      break;
+    case 'usuario':
+      if(await formErr(f, ()=>api('POST','/api/usuarios', v))){ toast('Usuario añadido'); await refresh(); render(); }
+      break;
+    case 'acceso':
+      if(await formErr(f, ()=>api('PUT',`/api/usuarios/${f.dataset.id}/acceso`, v))){ closeModal(); toast('Acceso actualizado'); await refresh(); render(); }
+      break;
+    case 'test-email': {
+      const btn = f.querySelector('button');
+      try{ await busy(btn, ()=>api('POST','/api/correo/prueba', v)); toast('Correo de prueba enviado a '+v.to); }catch(err){ toast(err.message); }
+      break;
+    }
+  }
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ if($('#modal')) closeModal(); else closeDrawer(); } });
+
+function exportCSV(){
+  const cols = ['id','nombre','apellido','telefono','email','origen','permiso','canal','tecnologia','presupuesto','compraDias','carga','asesor','vehiculo'];
+  const rows = DATA.clientes.map(c=>{ const m=motor(c); return [...cols.map(k=>c[k]), m.segmento, m.accion, m.plazo, m.prioridad]; });
+  const campoCSV = v => {
+    const raw = String(v ?? '');
+    // Las hojas de cálculo pueden interpretar entradas de clientes como fórmulas.
+    const text = /^[\s\uFEFF]*[=+@-]|^[\t\r\n]/u.test(raw) ? "'" + raw : raw;
+    return '"' + text.replace(/"/g, '""') + '"';
+  };
+  const csv = [[...cols,'segmento','accion','plazo','prioridad'],...rows].map(r=>r.map(campoCSV).join(';')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'})); a.download='clientes_ecoruta.csv'; a.click();
+}
+
+/* Comprueba cada 20 s si hay respuestas nuevas de clientes y avisa */
+setInterval(async ()=>{
+  if(!session || !DATA || document.hidden) return;
+  try{
+    const antes = new Set((DATA.respuestas||[]).map(r=>r.id));
+    const d = await api('GET','/api/data');
+    const nuevas = (d.respuestas||[]).filter(r=>!antes.has(r.id));
+    const editando = $('#modal') || ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName);
+    applyData(d);
+    if(nuevas.length){
+      const c = DATA.clientes.find(x=>x.id===nuevas[0].clienteId);
+      toast(nuevas.length===1 ? `Nueva respuesta de ${c?nombreC(c):nuevas[0].clienteId}: ${nuevas[0].resumen}` : `${nuevas.length} respuestas nuevas de clientes`);
+    }
+    if(!editando){ render(); refreshDrawer(); }
+  }catch(_){}
+}, 20000);
+
+boot();
+</script>
+</body>
+</html>

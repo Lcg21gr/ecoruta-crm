@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS usuarios (id __AUTO_ID__, nombre TEXT NOT NULL UNIQUE, email TEXT UNIQUE, rol TEXT NOT NULL CHECK (rol IN ('admin','estandar')), pass_hash TEXT, creado TEXT);
+CREATE TABLE IF NOT EXISTS sesiones (token TEXT PRIMARY KEY, usuario_id BIGINT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE, expira BIGINT NOT NULL);
+CREATE TABLE IF NOT EXISTS catalogo (id TEXT PRIMARY KEY, modelo TEXT, version TEXT, tec TEXT, precio BIGINT, recarga TEXT, uso TEXT, base TEXT, disponible INTEGER DEFAULT 1);
+CREATE TABLE IF NOT EXISTS clientes (id TEXT PRIMARY KEY, nombre TEXT NOT NULL, apellido TEXT NOT NULL, telefono TEXT NOT NULL, email TEXT NOT NULL, origen TEXT, permiso TEXT, canal TEXT, tecnologia TEXT, presupuesto BIGINT, compra_dias BIGINT, carga TEXT, asesor TEXT, vehiculo TEXT REFERENCES catalogo(id), creado TEXT);
+CREATE TABLE IF NOT EXISTS interacciones (id __AUTO_ID__, cliente_id TEXT NOT NULL REFERENCES clientes(id) ON DELETE CASCADE, fecha TEXT, canal TEXT, evento TEXT, resultado TEXT, responsable TEXT, accion TEXT);
+CREATE TABLE IF NOT EXISTS encuestas (id TEXT PRIMARY KEY, cliente_id TEXT NOT NULL REFERENCES clientes(id) ON DELETE CASCADE, tipo TEXT, canal TEXT, enviada TEXT, estado TEXT, respuestas TEXT, respondida TEXT);
+CREATE TABLE IF NOT EXISTS envios (id __AUTO_ID__, cliente_id TEXT, tipo TEXT, destinatario TEXT, asunto TEXT, estado TEXT, detalle TEXT, fecha TEXT, usuario TEXT);
+CREATE TABLE IF NOT EXISTS config (clave TEXT PRIMARY KEY, valor TEXT);
+CREATE TABLE IF NOT EXISTS enlaces (__LINK_ID__ token TEXT PRIMARY KEY, tipo TEXT NOT NULL, cliente_id TEXT NOT NULL REFERENCES clientes(id) ON DELETE CASCADE, encuesta_id TEXT, vehiculo TEXT, fecha_propuesta TEXT, creado TEXT, respondido TEXT, respuesta TEXT, resumen TEXT, leido INTEGER DEFAULT 0);
+CREATE TABLE IF NOT EXISTS contadores (entidad TEXT PRIMARY KEY, ultimo BIGINT NOT NULL);
+CREATE INDEX IF NOT EXISTS clientes_asesor_idx ON clientes (asesor, id);
+CREATE INDEX IF NOT EXISTS interacciones_cliente_idx ON interacciones (cliente_id, fecha, id);
+CREATE INDEX IF NOT EXISTS encuestas_cliente_idx ON encuestas (cliente_id, enviada);
+CREATE INDEX IF NOT EXISTS enlaces_cliente_idx ON enlaces (cliente_id, respondido);
+CREATE INDEX IF NOT EXISTS enlaces_encuesta_idx ON enlaces (encuesta_id);
+CREATE INDEX IF NOT EXISTS sesiones_expira_idx ON sesiones (expira);
+CREATE INDEX IF NOT EXISTS sesiones_usuario_idx ON sesiones (usuario_id);
+CREATE INDEX IF NOT EXISTS envios_cliente_idx ON envios (cliente_id);

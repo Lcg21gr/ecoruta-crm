@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ecoruta
+      POSTGRES_USER: ecoruta
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configura POSTGRES_PASSWORD en .env.docker}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+  crm:
+    build: .
+    init: true
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - path: ${CRM_MAIL_ENV_FILE:-.env}
+        required: false
+    environment:
+      DATABASE_URL: ""
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ecoruta
+      DB_USER: ecoruta
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Configura POSTGRES_PASSWORD en .env.docker}
+      DB_SSLMODE: disable
+      BIND_HOST: "0.0.0.0"
+      PORT: "8080"
+      HTTP_ENGINE: starman
+      APP_ENV: ${APP_ENV:-local}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:${CRM_PORT:-8086}}
+      CRM_SETUP_TOKEN: ${CRM_SETUP_TOKEN:-}
+      SEED_DEMO: ${SEED_DEMO:-0}
+    ports:
+      - "127.0.0.1:${CRM_PORT:-8086}:8080"
+    healthcheck:
+      test: [CMD, curl, -fsS, --max-time, '7', 'http://127.0.0.1:8080/healthz']
+volumes:
+  postgres_data:
