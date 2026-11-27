@@ -1,4 +1,4 @@
-from contextlib import closing, contextmanager
+from contextlib import closing, contextmanager, suppress
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 
 from .config import SCHEMA, ConfigError
 from .domain import now, RuleError
+from .neon import LOCAL_PORT, is_neon_host, postgres_socket
 
 SEED = Path(__file__).with_name("seed.json")
 TABLES = {
@@ -51,6 +52,7 @@ class Database:
     def __init__(self, settings):
         self.settings = settings
 
+    @contextmanager
     def _open(self):
         s = self.settings
         if s.postgres:
@@ -59,39 +61,58 @@ class Database:
 
             options = {"connect_timeout": 8, "row_factory": dict_row}
             if s.database_url:
-                if s.production:
-                    # En Neon y otros servidores externos, validar certificado y nombre del host.
+                try:
                     url = urlsplit(s.database_url)
-                    if url.scheme not in ("postgres", "postgresql") or not url.hostname:
-                        raise ConfigError("DATABASE_URL debe ser una URL de PostgreSQL válida.")
+                    host = url.hostname
+                except ValueError:
+                    raise ConfigError("DATABASE_URL debe ser una URL de PostgreSQL válida.") from None
+                if url.scheme not in ("postgres", "postgresql") or not host:
+                    raise ConfigError("DATABASE_URL debe ser una URL de PostgreSQL válida.")
+                if s.db_transport == "neon-websocket" or (
+                    s.db_transport == "auto" and s.production and is_neon_host(host)
+                ):
+                    with postgres_socket(host) as directory:
+                        # libpq solo atraviesa el socket local. El cliente WebSocket
+                        # cifra y valida el nombre del servidor al conectarse a Neon.
+                        with closing(psycopg.connect(
+                            s.database_url, host=directory, hostaddr="", port=LOCAL_PORT,
+                            sslmode="disable", sslrootcert="", sslnegotiation="postgres",
+                            channel_binding="disable", gssencmode="disable", **options,
+                        )) as conn:
+                            yield conn
+                    return
+                if s.production:
                     options.update(sslmode="verify-full", sslrootcert="system")
-                return psycopg.connect(s.database_url, **options)
-            return psycopg.connect(
+                with closing(psycopg.connect(s.database_url, **options)) as conn:
+                    yield conn
+                return
+            with closing(psycopg.connect(
                 host=s.db_host, port=s.db_port, dbname=s.db_name, user=s.db_user,
                 password=s.db_password, sslmode=s.db_sslmode, **options,
-            )
+            )) as conn:
+                yield conn
+            return
         s.sqlite_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-        conn = sqlite3.connect(s.sqlite_path, timeout=8, isolation_level=None)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys=ON")
-        return conn
+        with closing(sqlite3.connect(s.sqlite_path, timeout=8, isolation_level=None)) as conn:
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA foreign_keys=ON")
+            yield conn
 
     @contextmanager
     def transaction(self, write=False):
-        conn = self._open()
-        q = Query(conn, self.settings.postgres)
-        try:
-            if write and q.postgres:
-                q.run("SELECT pg_advisory_xact_lock(420706810)")
-            if not q.postgres:
-                q.run("BEGIN IMMEDIATE" if write else "BEGIN")
-            yield q
-            conn.commit()
-        except BaseException:
-            conn.rollback()
-            raise
-        finally:
-            conn.close()
+        with self._open() as conn:
+            q = Query(conn, self.settings.postgres)
+            try:
+                if write and q.postgres:
+                    q.run("SELECT pg_advisory_xact_lock(420706810)")
+                if not q.postgres:
+                    q.run("BEGIN IMMEDIATE" if write else "BEGIN")
+                yield q
+                conn.commit()
+            except BaseException:
+                with suppress(Exception):
+                    conn.rollback()
+                raise
 
     def prepare(self):
         if not self.settings.manage_schema:

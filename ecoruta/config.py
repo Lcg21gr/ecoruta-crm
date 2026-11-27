@@ -36,6 +36,7 @@ class Settings:
     db_user: str = "ecoruta"
     db_password: str = field(default="", repr=False)
     db_sslmode: str = "prefer"
+    db_transport: str = "auto"
     sqlite_path: Path = ROOT / "backend/data/ecoruta.db"
     public_url: str = ""
     setup_token: str = field(default="", repr=False)
@@ -60,6 +61,10 @@ class Settings:
     def validate(self):
         if self.production and not self.postgres:
             raise ConfigError("Configura PostgreSQL en producción para conservar los datos.")
+        if self.db_transport not in ("auto", "tcp", "neon-websocket"):
+            raise ConfigError("CRM_DB_TRANSPORT debe ser auto, tcp o neon-websocket.")
+        if self.db_transport == "neon-websocket" and not self.database_url:
+            raise ConfigError("El WebSocket de Neon requiere DATABASE_URL.")
         if self.public_url:
             url = urlsplit(self.public_url)
             if (
@@ -98,7 +103,8 @@ class Settings:
         return cls(
             database_url=val("DATABASE_URL"), db_host=val("DB_HOST"), db_port=port("DB_PORT", 5432),
             db_name=val("DB_NAME", "ecoruta"), db_user=val("DB_USER", "ecoruta"), db_password=val("DB_PASSWORD"),
-            db_sslmode=val("DB_SSLMODE", "prefer"), sqlite_path=Path(val("DB_PATH", str(cls.sqlite_path))),
+            db_sslmode=val("DB_SSLMODE", "prefer"), db_transport=val("CRM_DB_TRANSPORT", "auto"),
+            sqlite_path=Path(val("DB_PATH", str(cls.sqlite_path))),
             public_url=(val("PUBLIC_URL") or val("RENDER_EXTERNAL_URL") or ("" if prod else f"http://localhost:{http_port}")).rstrip("/"),
             setup_token=val("CRM_SETUP_TOKEN"), production=prod, manage_schema=flag("CRM_MANAGE_SCHEMA", not prod),
             seed_demo=flag("SEED_DEMO"), port=http_port, bind=val("BIND_HOST", "127.0.0.1"),

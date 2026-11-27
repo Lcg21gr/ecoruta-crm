@@ -26,6 +26,8 @@ CRM de EcoRuta Madrid en Python 3.12 y Streamlit. Conserva usuarios, clientes, h
 
 El correo se configura en **Secrets**, no en GitHub. Con el puerto 587 se usa STARTTLS y se valida el certificado. Para usar TLS desde el inicio, configura SMTP_PORT = "465" y SMTP_SSL = "1". La compatibilidad con SMTP depende de la salida de red del proveedor y debe comprobarse desde la app desplegada. Una pestaña nueva o una recarga completa pueden pedir el acceso al CRM otra vez. Los enlaces antiguos /r/TOKEN conservan su token en la base, pero para abrirlos en Community Cloud hay que usar la nueva URL /?r=TOKEN.
 
+En producción, el CRM reconoce el hostname oficial de Neon en `DATABASE_URL` y abre la conexión PostgreSQL a través de su WebSocket con TLS en el puerto 443. Esto mantiene las transacciones y reutiliza la misma base y el mismo usuario. No hace falta cambiar los secretos existentes. Para usar la conexión PostgreSQL directa, elige `CRM_DB_TRANSPORT = "tcp"` en un entorno que alcance el puerto 5432. Docker Compose con su propia base sigue conectando directamente a PostgreSQL.
+
 ## Ejecutar en Docker Compose
 
 Copia .env.docker.example a .env.docker, define POSTGRES_PASSWORD y CRM_SETUP_TOKEN con valores diferentes y guárdalo fuera de Git. Opcionalmente configura el correo en .env tomando .env.example como referencia. Después ejecuta lo siguiente.
